@@ -1,5 +1,6 @@
 {
 	"branches": ["main"],
+	"repositoryUrl": "https://github.com/devkindhq/swell-mcp.git",
 	"plugins": [
 		"@semantic-release/commit-analyzer",
 		"@semantic-release/release-notes-generator",
