@@ -8,6 +8,14 @@ A Model Context Protocol server that integrates AI assistants with Swell's e-com
 [![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg)](https://opensource.org/licenses/ISC)
 [![Built by Devkind](https://img.shields.io/badge/Built%20by-Devkind-blue)](https://devkind.com.au/services/swell)
 
+## Latest updates
+
+- Highlights from recent releases:
+	- v1.14.0 (2025-09-09): modernize dependencies and enhance testing infrastructure
+	- v1.13.x: CI/workflow improvements and Gemini CLI autonomous MCP engineer added
+	- v1.11.x: added Streamable HTTP transport alongside STDIO and startup logging
+
+
 ## Features
 
 - **Swell E-commerce Integration**: Complete access to Swell's API for products, orders, and customers
@@ -18,6 +26,63 @@ A Model Context Protocol server that integrates AI assistants with Swell's e-com
 - **Comprehensive Testing**: Unit and integration tests with Swell API mocking
 - **Production Tooling**: ESLint, Prettier, semantic-release, and MCP Inspector integration
 - **Error Handling**: Structured error handling with Swell-specific error contexts
+
+## Swell E-commerce Integration
+
+This MCP server provides comprehensive integration with Swell's e-commerce platform:
+
+### Available Tools & Commands
+
+**MCP Tools:**
+
+- `swell_list_products` - List products with filtering and pagination
+- `swell_get_product` - Get detailed product information
+- `swell_search_products` - Search products with multiple criteria
+- `swell_check_inventory` - Check product inventory levels
+- `swell_list_orders` - List orders with filtering options
+- `swell_get_order` - Get detailed order information
+- `swell_update_order_status` - Update order status
+- `swell_list_customers` - List customers with search capabilities
+- `swell_get_customer` - Get detailed customer information
+- `swell_search_customers` - Search customers with multiple criteria
+
+### Features Demonstrated
+
+- **Product Management**: Complete product catalog access with inventory tracking
+- **Order Processing**: Order lifecycle management with status updates
+- **Customer Management**: Customer profiles with order history and analytics
+- **Error Handling**: Structured errors for API failures and validation issues
+- **Response Formatting**: Clean Markdown output with structured data tables
+
+### Configuration Requirements
+
+```bash
+# Required - Swell API credentials
+SWELL_STORE_ID=your-store-id
+SWELL_SECRET_KEY=your-secret-key
+
+# Development
+DEBUG=true                    # Enable detailed logging
+TRANSPORT_MODE=http          # Use HTTP transport
+PORT=3001                    # Custom port
+```
+
+## Need Advanced Swell Checkout?
+
+This MCP server demonstrates the kind of sophisticated Swell integrations that power **[CheckoutJet](https://checkoutjet.com/)** - an enterprise-grade checkout solution for Swell stores built by [Devkind](https://devkind.com.au/services/swell).
+
+**CheckoutJet** transforms your Swell checkout with:
+
+- **🏢 B2B Excellence** - Professional invoicing, Net 30 payments, and wholesale pricing
+- **📦 Smart Shipping** - Live rates from multiple locations with intelligent order routing
+- **⚡ Split Deliveries** - Handle complex multi-vendor and multi-warehouse fulfillment
+- **🎨 Full Customization** - Pixel-perfect, on-brand checkout experience
+- **🤖 Automation** - Automated invoicing, POs, and order management
+- **💰 Advanced Pricing** - Dynamic discounts and tiered pricing logic
+
+**Proven Results:** Over €500,000 processed for Swell merchants with 23% conversion rate improvements.
+
+**Ready to upgrade your Swell checkout?** [Book a 15-minute demo](https://checkoutjet.com/)
 
 ## What is MCP?
 
@@ -455,58 +520,38 @@ Create `~/.mcp/configs.json`:
 
 ## Available Tools
 
-The Swell MCP server provides comprehensive e-commerce management tools for AI assistants:
+The Swell MCP server provides comprehensive e-commerce management tools for AI assistants. The list below matches the tool names and parameter schemas implemented under `src/tools/`.
 
 <details>
 <summary><b>Product Management</b></summary>
 
 - **swell_list_products**
-    - Description: List products from your Swell store with filtering and pagination options
-    - Parameters:
-        - `page` (number, optional): Page number for pagination (default: 1)
-        - `limit` (number, optional): Number of products per page (max: 100, default: 20)
-        - `active` (boolean, optional): Filter by active status
-        - `category` (string, optional): Filter by category slug or ID
-        - `tags` (array, optional): Filter by product tags
-        - `sort` (string, optional): Sort order (e.g., "date_created_desc", "name_asc", "price_asc")
-        - `expand` (array, optional): Fields to expand (e.g., ["variants", "categories", "images"])
+  - Description: List products with filtering and pagination
+  - Parameters: `page`, `limit`, `active`, `category`, `tags`, `sort`, `expand`
 
 - **swell_get_product**
-    - Description: Get detailed information for a specific product
-    - Parameters:
-        - `productId` (string): The ID of the product to retrieve
-        - `expand` (array, optional): Fields to expand (default: ["variants", "categories", "images"])
+  - Description: Get detailed product information
+  - Parameters: `productId`, `expand`
 
 - **swell_search_products**
-    - Description: Search for products using text queries with optional filtering
-    - Parameters:
-        - `query` (string): Search query to find products
-        - `page` (number, optional): Page number for pagination (default: 1)
-        - `limit` (number, optional): Number of products per page (max: 100, default: 20)
-        - `active` (boolean, optional): Filter by active status
-        - `category` (string, optional): Filter by category slug or ID
-        - `tags` (array, optional): Filter by product tags
-        - `sort` (string, optional): Sort order (default: "relevance")
+  - Description: Search products with text queries and optional filters
+  - Parameters: `query`, `page`, `limit`, `active`, `category`, `tags`, `sort`, `expand`
 
-- **swell_check_inventory**
-    - Description: Check current inventory levels and stock status for a product
-    - Parameters:
-        - `productId` (string): The ID of the product to check inventory for
-        - `includeVariants` (boolean, optional): Whether to include variant inventory (default: true)
+- **swell_check_stock**
+  - Description: Check current stock levels and stock status for a product
+  - Parameters: `productId`, `includeVariants` (default: true)
 
-- **swell_update_customer**
-    - Description: Update customer information in your Swell store
-    - Parameters:
-        - `customerId` (string): The ID of the customer to update
-        - `firstName` (string, optional): Customer's first name
-        - `lastName` (string, optional): Customer's last name
-        - `email` (string, optional): Customer's email address
-        - `phone` (string, optional): Customer's phone number
-        - `notes` (string, optional): Customer notes
-        - `tags` (array, optional): Customer tags
-        - `groupId` (string, optional): Customer group ID
-        - `emailOptin` (boolean, optional): Email marketing opt-in status
-        - `smsOptin` (boolean, optional): SMS marketing opt-in status
+- **swell_update_product**
+  - Description: Update product metadata and attributes (name, description, SEO, tags, categories, attributes, active, sku, etc.)
+  - Parameters: `productId` plus any editable product fields
+
+- **swell_update_product_stock**
+  - Description: Adjust stock levels or update stock tracking settings
+  - Parameters: `productId`, `quantity`, `reason`, `reasonMessage`, `variantId`, `orderId`
+
+- **swell_update_product_pricing**
+  - Description: Update product pricing (regular price, sale price, currency)
+  - Parameters: `productId`, `price`, `salePrice`, `currency`
 
 </details>
 
@@ -514,29 +559,16 @@ The Swell MCP server provides comprehensive e-commerce management tools for AI a
 <summary><b>Order Management</b></summary>
 
 - **swell_list_orders**
-    - Description: List orders from your Swell store with filtering options
-    - Parameters:
-        - `page` (number, optional): Page number for pagination (default: 1)
-        - `limit` (number, optional): Number of orders per page (max: 100, default: 20)
-        - `status` (string, optional): Filter by order status ("pending", "payment_pending", "delivery_pending", "complete", "canceled")
-        - `customerId` (string, optional): Filter by customer ID
-        - `dateFrom` (string, optional): Filter orders from this date (ISO format: YYYY-MM-DD)
-        - `dateTo` (string, optional): Filter orders to this date (ISO format: YYYY-MM-DD)
-        - `sort` (string, optional): Sort order (default: "date_created_desc")
-        - `expand` (array, optional): Fields to expand (e.g., ["items", "account", "billing", "shipping"])
+  - Description: List orders with filtering options
+  - Parameters: `page`, `limit`, `status`, `customerId`, `dateFrom`, `dateTo`, `sort`, `expand`
 
 - **swell_get_order**
-    - Description: Get detailed information for a specific order
-    - Parameters:
-        - `orderId` (string): The ID of the order to retrieve
-        - `expand` (array, optional): Fields to expand (default: ["items", "account", "billing", "shipping"])
+  - Description: Get detailed order information
+  - Parameters: `orderId`, `expand`
 
 - **swell_update_order_status**
-    - Description: Update the status of an order
-    - Parameters:
-        - `orderId` (string): The ID of the order to update
-        - `status` (string): New status ("pending", "payment_pending", "delivery_pending", "complete", "canceled")
-        - `notes` (string, optional): Optional notes about the status change
+  - Description: Update the status of an order (with optional notes)
+  - Parameters: `orderId`, `status`, `notes`
 
 </details>
 
@@ -544,33 +576,20 @@ The Swell MCP server provides comprehensive e-commerce management tools for AI a
 <summary><b>Customer Management</b></summary>
 
 - **swell_list_customers**
-    - Description: List customers from your Swell store with search and filtering options
-    - Parameters:
-        - `page` (number, optional): Page number for pagination (default: 1)
-        - `limit` (number, optional): Number of customers per page (max: 100, default: 20)
-        - `search` (string, optional): Search customers by name or email
-        - `email` (string, optional): Filter by specific email address
-        - `dateFrom` (string, optional): Filter customers created from this date (ISO format: YYYY-MM-DD)
-        - `dateTo` (string, optional): Filter customers created to this date (ISO format: YYYY-MM-DD)
-        - `sort` (string, optional): Sort order (default: "date_created_desc")
-        - `expand` (array, optional): Fields to expand (e.g., ["orders", "addresses"])
+  - Description: List customers with search and filtering options
+  - Parameters: `page`, `limit`, `search`, `email`, `dateFrom`, `dateTo`, `sort`, `expand`
 
 - **swell_get_customer**
-    - Description: Get detailed information for a specific customer
-    - Parameters:
-        - `customerId` (string): The ID of the customer to retrieve
-        - `expand` (array, optional): Fields to expand (default: ["orders", "addresses"])
-        - `includeOrderHistory` (boolean, optional): Whether to include order history (default: true)
+  - Description: Get detailed customer information (profile + optional order history)
+  - Parameters: `customerId`, `expand`, `includeOrderHistory`
 
 - **swell_search_customers**
-    - Description: Search for customers using text queries
-    - Parameters:
-        - `query` (string): Search query to find customers (searches name, email, phone)
-        - `page` (number, optional): Page number for pagination (default: 1)
-        - `limit` (number, optional): Number of customers per page (max: 100, default: 20)
-        - `dateFrom` (string, optional): Filter customers created from this date
-        - `dateTo` (string, optional): Filter customers created to this date
-        - `sort` (string, optional): Sort order (default: "relevance")
+  - Description: Search customers using text queries (name, email, phone)
+  - Parameters: `query`, `page`, `limit`, `dateFrom`, `dateTo`, `sort`, `expand`
+
+- **swell_update_customer**
+  - Description: Update customer records (name, email, phone, tags, groups, marketing opt-ins, notes)
+  - Parameters: `customerId` plus editable customer fields
 
 </details>
 
@@ -579,63 +598,6 @@ The Swell MCP server provides comprehensive e-commerce management tools for AI a
 This server is built with a modular architecture that makes it easy to add new Swell API integrations or custom business logic. The existing Swell tools (products, orders, customers) serve as examples for implementing additional functionality.
 
 For detailed implementation patterns, see the existing controllers, services, and tools in the codebase.
-
-### Need Advanced Swell Checkout?
-
-This MCP server demonstrates the kind of sophisticated Swell integrations that power **[CheckoutJet](https://checkoutjet.com/)** - an enterprise-grade checkout solution for Swell stores built by [Devkind](https://devkind.com.au/services/swell).
-
-**CheckoutJet** transforms your Swell checkout with:
-
-- **🏢 B2B Excellence** - Professional invoicing, Net 30 payments, and wholesale pricing
-- **📦 Smart Shipping** - Live rates from multiple locations with intelligent order routing
-- **⚡ Split Deliveries** - Handle complex multi-vendor and multi-warehouse fulfillment
-- **🎨 Full Customization** - Pixel-perfect, on-brand checkout experience
-- **🤖 Automation** - Automated invoicing, POs, and order management
-- **💰 Advanced Pricing** - Dynamic discounts and tiered pricing logic
-
-**Proven Results:** Over €500,000 processed for Swell merchants with 23% conversion rate improvements.
-
-**Ready to upgrade your Swell checkout?** [Book a 15-minute demo](https://checkoutjet.com/) of CheckoutJet.
-
-## Swell E-commerce Integration
-
-This MCP server provides comprehensive integration with Swell's e-commerce platform:
-
-### Available Tools & Commands
-
-**MCP Tools:**
-
-- `swell_list_products` - List products with filtering and pagination
-- `swell_get_product` - Get detailed product information
-- `swell_search_products` - Search products with multiple criteria
-- `swell_check_inventory` - Check product inventory levels
-- `swell_list_orders` - List orders with filtering options
-- `swell_get_order` - Get detailed order information
-- `swell_update_order_status` - Update order status
-- `swell_list_customers` - List customers with search capabilities
-- `swell_get_customer` - Get detailed customer information
-- `swell_search_customers` - Search customers with multiple criteria
-
-### Features Demonstrated
-
-- **Product Management**: Complete product catalog access with inventory tracking
-- **Order Processing**: Order lifecycle management with status updates
-- **Customer Management**: Customer profiles with order history and analytics
-- **Error Handling**: Structured errors for API failures and validation issues
-- **Response Formatting**: Clean Markdown output with structured data tables
-
-### Configuration Requirements
-
-```bash
-# Required - Swell API credentials
-SWELL_STORE_ID=your-store-id
-SWELL_SECRET_KEY=your-secret-key
-
-# Development
-DEBUG=true                    # Enable detailed logging
-TRANSPORT_MODE=http          # Use HTTP transport
-PORT=3001                    # Custom port
-```
 
 ## Standalone Usage
 
@@ -703,7 +665,7 @@ The server includes comprehensive testing infrastructure:
 
 ### Test Structure
 
-```
+```text
 tests/               # Not present - tests are in src/
 src/
 ├── **/*.test.ts     # Co-located with source files
