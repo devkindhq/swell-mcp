@@ -13,6 +13,9 @@ import cors from 'cors';
 // Import tools and resources
 import ipAddressTools from './tools/ipaddress.tool.js';
 import ipAddressResources from './resources/ipaddress.resource.js';
+import swellProductsTools from './tools/swell.products.tool.js';
+import swellOrdersTools from './tools/swell.orders.tool.js';
+import swellCustomersTools from './tools/swell.customers.tool.js';
 
 const logger = Logger.forContext('index.ts');
 
@@ -51,6 +54,9 @@ export async function startServer(
 	serverLogger.info('Registering MCP tools and resources...');
 	ipAddressTools.registerTools(serverInstance);
 	ipAddressResources.registerResources(serverInstance);
+	swellProductsTools.registerTools(serverInstance);
+	swellOrdersTools.registerTools(serverInstance);
+	swellCustomersTools.registerTools(serverInstance);
 	serverLogger.debug('All tools and resources registered');
 
 	if (mode === 'stdio') {

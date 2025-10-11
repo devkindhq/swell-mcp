@@ -177,4 +177,4 @@ class ConfigLoader {
 }
 
 // Create and export a singleton instance with the package name from package.json
-export const config = new ConfigLoader('@aashari/boilerplate-mcp-server');
+export const config = new ConfigLoader('swell-mcp');

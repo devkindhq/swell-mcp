@@ -1,23 +1,24 @@
-# Boilerplate MCP Server
+# Swell MCP Server
 
-A production-ready foundation for developing custom Model Context Protocol (MCP) servers in TypeScript. Provides a complete layered architecture pattern, working example implementation, and comprehensive developer infrastructure to connect AI assistants with external APIs and data sources.
+A Model Context Protocol server that integrates AI assistants with Swell's e-commerce platform. Built on a production-ready TypeScript foundation, it provides comprehensive access to Swell stores for product management, order processing, and customer management through both CLI and MCP tool interfaces.
 
-[![NPM Version](https://img.shields.io/npm/v/@aashari/boilerplate-mcp-server)](https://www.npmjs.com/package/@aashari/boilerplate-mcp-server)
+[![NPM Version](https://img.shields.io/npm/v/swell-mcp)](https://www.npmjs.com/package/swell-mcp)
 [![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg)](https://opensource.org/licenses/ISC)
 
 ## Features
 
-- **Dual Transport Support**: STDIO and Streamable HTTP transports with automatic fallback
+- **Swell E-commerce Integration**: Complete access to Swell's API for products, orders, and customers
+- **Dual Transport Support**: STDIO and HTTP transports for AI assistant and web integration
 - **5-Layer Architecture**: Clean separation between CLI, tools, controllers, services, and utilities
 - **Type Safety**: Full TypeScript implementation with Zod schema validation
-- **Complete IP Address Example**: Tools, resources, and CLI commands for IP geolocation
-- **Comprehensive Testing**: Unit and integration tests with coverage reporting
+- **Advanced HTTP Client**: Built on swell-node SDK with connection pooling and retry logic
+- **Comprehensive Testing**: Unit and integration tests with Swell API mocking
 - **Production Tooling**: ESLint, Prettier, semantic-release, and MCP Inspector integration
-- **Error Handling**: Structured error handling with contextual logging
+- **Error Handling**: Structured error handling with Swell-specific error contexts
 
 ## What is MCP?
 
-Model Context Protocol (MCP) is an open standard for securely connecting AI systems to external tools and data sources. This boilerplate implements the MCP specification with a clean, layered architecture that can be extended to build custom MCP servers for any API or data source.
+Model Context Protocol (MCP) is an open standard for securely connecting AI systems to external tools and data sources. This server implements the MCP specification to provide AI assistants with comprehensive access to Swell's e-commerce platform, enabling intelligent store management and customer service automation.
 
 ## Prerequisites
 
@@ -28,26 +29,31 @@ Model Context Protocol (MCP) is an open standard for securely connecting AI syst
 
 ```bash
 # Clone the repository
-git clone https://github.com/aashari/boilerplate-mcp-server.git
-cd boilerplate-mcp-server
+git clone https://github.com/devkindhq/swell-mcp.git
+cd swell-mcp
 
 # Install dependencies
 npm install
+
+# Configure your Swell credentials
+cp .env.example .env
+# Edit .env and add your SWELL_STORE_ID and SWELL_SECRET_KEY
 
 # Build the project
 npm run build
 
 # Run in different modes:
 
-# 1. CLI Mode - Execute commands directly
-npm run cli -- get-ip-details 8.8.8.8
-npm run cli -- get-ip-details              # Get your current IP
-npm run cli -- get-ip-details 1.1.1.1 --include-extended-data
+# 1. CLI Mode - Execute Swell commands directly
+npm run cli -- list-products
+npm run cli -- get-product <product-id>
+npm run cli -- list-orders --status pending
 
 # 2. STDIO Transport - For AI assistant integration (Claude Desktop, Cursor)
-npm run mcp:stdio
+npm run swell:stdio
 
 # 3. HTTP Transport - For web-based integrations
+npm run swell:http
 npm run mcp:http
 
 # 4. Development with MCP Inspector
