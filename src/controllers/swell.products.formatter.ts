@@ -31,7 +31,7 @@ export function formatProductsList(
 	const summaryInfo: Record<string, unknown> = {
 		'Total Products': data.count,
 		'Current Page': data.page || 1,
-		'Total Pages': data.pages || 1,
+		'Total Pages': typeof data.pages === 'number' ? data.pages : 1,
 		'Products per Page': options.limit || 20,
 	};
 
@@ -263,7 +263,7 @@ export function formatProductSearch(
 		'Search Query': options.query,
 		'Results Found': data.count,
 		'Current Page': data.page || 1,
-		'Total Pages': data.pages || 1,
+		'Total Pages': typeof data.pages === 'number' ? data.pages : 1,
 		'Results per Page': options.limit || 20,
 	};
 
@@ -320,11 +320,11 @@ export function formatProductSearch(
 		}
 
 		// Add pagination info if there are multiple pages
-		if ((data.pages || 1) > 1) {
+		const totalPages = typeof data.pages === 'number' ? data.pages : 1;
+		if (totalPages > 1) {
 			lines.push('');
 			lines.push(formatHeading('Pagination', 3));
 			const currentPage = data.page || 1;
-			const totalPages = data.pages || 1;
 			lines.push(`Page ${currentPage} of ${totalPages}`);
 
 			if (currentPage > 1) {
@@ -348,7 +348,7 @@ export function formatProductSearch(
 /**
  * Format price with sale price consideration
  */
-function formatPrice(price?: number, salePrice?: number): string {
+function formatPrice(price?: number | null, salePrice?: number | null): string {
 	if (price === undefined || price === null) {
 		return 'Not set';
 	}
@@ -365,7 +365,7 @@ function formatPrice(price?: number, salePrice?: number): string {
 /**
  * Format currency value
  */
-function formatCurrency(amount?: number): string {
+function formatCurrency(amount?: number | null): string {
 	if (amount === undefined || amount === null) {
 		return 'Not set';
 	}
@@ -376,7 +376,7 @@ function formatCurrency(amount?: number): string {
 /**
  * Format stock information
  */
-function formatStock(level?: number, status?: string): string {
+function formatStock(level?: number, status?: string | null): string {
 	const statusText = formatStockStatus(status);
 
 	if (level !== undefined && level !== null) {
@@ -389,7 +389,7 @@ function formatStock(level?: number, status?: string): string {
 /**
  * Format stock status with emoji
  */
-function formatStockStatus(status?: string): string {
+function formatStockStatus(status?: string | null): string {
 	switch (status) {
 		case 'in_stock':
 			return '✅ In Stock';
@@ -407,7 +407,10 @@ function formatStockStatus(status?: string): string {
 /**
  * Get availability message based on stock level and status
  */
-function getAvailabilityMessage(level?: number, status?: string): string {
+function getAvailabilityMessage(
+	level?: number,
+	status?: string | null,
+): string {
 	if (status === 'out_of_stock') {
 		return '❌ Currently unavailable';
 	}

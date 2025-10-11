@@ -24,10 +24,11 @@ export const SwellVariantSchema = z.object({
 	name: z.string().optional(),
 	sku: z.string().optional(),
 	price: z.number().optional(),
-	sale_price: z.number().optional(),
+	sale_price: z.number().nullable().optional(),
 	stock_level: z.number().optional(),
 	stock_status: z
 		.enum(['in_stock', 'out_of_stock', 'backorder', 'preorder'])
+		.nullable()
 		.optional(),
 	option_value_ids: z.array(z.string()).optional(),
 	images: z.array(SwellImageSchema).optional(),
@@ -53,14 +54,15 @@ export const SwellProductSchema = z.object({
 	sku: z.string().optional(),
 	active: z.boolean().optional(),
 	price: z.number().optional(),
-	sale_price: z.number().optional(),
+	sale_price: z.number().nullable().optional(),
 	stock_level: z.number().optional(),
 	stock_status: z
 		.enum(['in_stock', 'out_of_stock', 'backorder', 'preorder'])
+		.nullable()
 		.optional(),
-	description: z.string().optional(),
-	meta_description: z.string().optional(),
-	meta_title: z.string().optional(),
+	description: z.string().nullable().optional(),
+	meta_description: z.string().nullable().optional(),
+	meta_title: z.string().nullable().optional(),
 	images: z.array(SwellImageSchema).optional(),
 	variants: z.array(SwellVariantSchema).optional(),
 	categories: z.array(SwellCategorySchema).optional(),
@@ -78,7 +80,7 @@ export const SwellProductsListSchema = z.object({
 	count: z.number(),
 	results: z.array(SwellProductSchema),
 	page: z.number().optional(),
-	pages: z.number().optional(),
+	pages: z.union([z.number(), z.object({})]).optional(),
 });
 
 /**

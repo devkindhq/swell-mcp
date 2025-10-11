@@ -445,11 +445,11 @@ export function formatCustomerOrderHistory(
 		}
 
 		// Add pagination info if there are multiple pages
-		if ((data.pages || 1) > 1) {
+		const totalPages = typeof data.pages === 'number' ? data.pages : 1;
+		if (totalPages > 1) {
 			lines.push('');
 			lines.push(formatHeading('Pagination', 3));
 			const currentPage = data.page || 1;
-			const totalPages = data.pages || 1;
 			lines.push(`Page ${currentPage} of ${totalPages}`);
 
 			if (currentPage > 1) {

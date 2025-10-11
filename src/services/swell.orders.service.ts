@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { Logger } from '../utils/logger.util.js';
+import { config } from '../utils/config.util.js';
 import { swellClient } from '../utils/swell-client.util.js';
 import {
 	createApiError,
@@ -100,6 +101,14 @@ async function list(options: OrderListOptions = {}): Promise<SwellOrdersList> {
 
 		// Make the API call
 		const rawData = await client.get<unknown>('/orders', queryParams);
+
+		// Check if debug mode is enabled
+		const isDebugMode = config.getBoolean('DEBUG', false);
+		
+		if (isDebugMode) {
+			methodLogger.debug('Debug mode enabled - returning raw data without validation');
+			return rawData as SwellOrdersList;
+		}
 
 		// Validate response with Zod schema
 		const validatedData = SwellOrdersListSchema.parse(rawData);

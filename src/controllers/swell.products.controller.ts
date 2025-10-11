@@ -1,4 +1,5 @@
 import { Logger } from '../utils/logger.util.js';
+import { config } from '../utils/config.util.js';
 import swellProductsService from '../services/swell.products.service.js';
 import {
 	formatProductsList,
@@ -83,13 +84,21 @@ async function list(
 		const data = await swellProductsService.list(options);
 
 		methodLogger.debug(
-			`Successfully retrieved ${data.results.length} products`,
+			`Successfully retrieved ${data.results?.length || 'unknown'} products`,
 			{
 				count: data.count,
 				page: data.page,
 				pages: data.pages,
 			},
 		);
+
+		// Check if debug mode is enabled
+		const isDebugMode = config.getBoolean('DEBUG', false);
+
+		if (isDebugMode) {
+			methodLogger.debug('Debug mode enabled - returning raw JSON');
+			return { content: JSON.stringify(data, null, 2) };
+		}
 
 		// Format the response
 		const formattedContent = formatProductsList(data, options);
@@ -146,7 +155,17 @@ async function get(args: {
 		// Call the service
 		const data = await swellProductsService.get(args.productId, options);
 
-		methodLogger.debug(`Successfully retrieved product: ${data.name}`);
+		methodLogger.debug(
+			`Successfully retrieved product: ${data.name || 'unknown'}`,
+		);
+
+		// Check if debug mode is enabled
+		const isDebugMode = config.getBoolean('DEBUG', false);
+
+		if (isDebugMode) {
+			methodLogger.debug('Debug mode enabled - returning raw JSON');
+			return { content: JSON.stringify(data, null, 2) };
+		}
 
 		// Format the response
 		const formattedContent = formatProductDetails(data);
@@ -235,6 +254,14 @@ async function search(args: {
 			`Search completed: found ${data.count} products matching "${args.query}"`,
 		);
 
+		// Check if debug mode is enabled
+		const isDebugMode = config.getBoolean('DEBUG', false);
+
+		if (isDebugMode) {
+			methodLogger.debug('Debug mode enabled - returning raw JSON');
+			return { content: JSON.stringify(data, null, 2) };
+		}
+
 		// Format the response
 		const formattedContent = formatProductSearch(data, options);
 		return { content: formattedContent };
@@ -294,12 +321,20 @@ async function checkInventory(args: {
 		);
 
 		methodLogger.debug(
-			`Successfully checked inventory for product: ${data.name}`,
+			`Successfully checked inventory for product: ${data.name || 'unknown'}`,
 			{
 				stock_level: data.stock_level,
 				stock_status: data.stock_status,
 			},
 		);
+
+		// Check if debug mode is enabled
+		const isDebugMode = config.getBoolean('DEBUG', false);
+
+		if (isDebugMode) {
+			methodLogger.debug('Debug mode enabled - returning raw JSON');
+			return { content: JSON.stringify(data, null, 2) };
+		}
 
 		// Format the response using the product details formatter with inventory focus
 		const formattedContent = formatProductDetails(data, {

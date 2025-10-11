@@ -4,16 +4,16 @@ import { z } from 'zod';
  * Zod Schema for Swell Address
  */
 export const SwellAddressSchema = z.object({
-	name: z.string().optional(),
-	first_name: z.string().optional(),
-	last_name: z.string().optional(),
-	address1: z.string().optional(),
-	address2: z.string().optional(),
-	city: z.string().optional(),
-	state: z.string().optional(),
-	zip: z.string().optional(),
-	country: z.string().optional(),
-	phone: z.string().optional(),
+	name: z.string().nullable().optional(),
+	first_name: z.string().nullable().optional(),
+	last_name: z.string().nullable().optional(),
+	address1: z.string().nullable().optional(),
+	address2: z.string().nullable().optional(),
+	city: z.string().nullable().optional(),
+	state: z.string().nullable().optional(),
+	zip: z.string().nullable().optional(),
+	country: z.string().nullable().optional(),
+	phone: z.string().nullable().optional(),
 });
 
 /**
@@ -23,20 +23,21 @@ export const SwellOrderItemSchema = z.object({
 	id: z.string().optional(),
 	product_id: z.string().optional(),
 	variant_id: z.string().optional(),
-	product_name: z.string().optional(),
-	variant_name: z.string().optional(),
-	sku: z.string().optional(),
+	product_name: z.string().nullable().optional(),
+	variant_name: z.string().nullable().optional(),
+	sku: z.string().nullable().optional(),
 	quantity: z.number().optional(),
 	price: z.number().optional(),
 	price_total: z.number().optional(),
 	discount_total: z.number().optional(),
 	tax_total: z.number().optional(),
-	delivery: z
-		.object({
+	delivery: z.union([
+		z.object({
 			service: z.string().optional(),
 			price: z.number().optional(),
-		})
-		.optional(),
+		}),
+		z.string(),
+	]).optional(),
 	options: z.array(z.unknown()).optional(),
 });
 
@@ -91,7 +92,7 @@ export const SwellOrderSchema = z.object({
 	item_quantity: z.number().optional(),
 	item_discount: z.number().optional(),
 	item_tax: z.number().optional(),
-	item_tax_included: z.boolean().optional(),
+	item_tax_included: z.boolean().nullable().optional(),
 	sub_total: z.number().optional(),
 	discount_total: z.number().optional(),
 	tax_total: z.number().optional(),
@@ -99,19 +100,19 @@ export const SwellOrderSchema = z.object({
 	shipping_total: z.number().optional(),
 	grand_total: z.number().optional(),
 	currency: z.string().optional(),
-	display_currency: z.string().optional(),
+	display_currency: z.string().nullable().optional(),
 	display_locale: z.string().optional(),
-	notes: z.string().optional(),
-	comments: z.string().optional(),
-	coupon_code: z.string().optional(),
-	discount_code: z.string().optional(),
+	notes: z.string().nullable().optional(),
+	comments: z.string().nullable().optional(),
+	coupon_code: z.string().nullable().optional(),
+	discount_code: z.string().nullable().optional(),
 	payment: SwellPaymentSchema.optional(),
 	payments: z.array(SwellPaymentSchema).optional(),
 	shipments: z.array(SwellShipmentSchema).optional(),
 	date_created: z.string().optional(),
 	date_updated: z.string().optional(),
 	date_payment_retry: z.string().optional(),
-	metadata: z.record(z.unknown()).optional(),
+	metadata: z.record(z.unknown()).nullable().optional(),
 });
 
 /**
@@ -121,7 +122,7 @@ export const SwellOrdersListSchema = z.object({
 	count: z.number(),
 	results: z.array(SwellOrderSchema),
 	page: z.number().optional(),
-	pages: z.number().optional(),
+	pages: z.union([z.number(), z.object({})]).optional(),
 });
 
 /**

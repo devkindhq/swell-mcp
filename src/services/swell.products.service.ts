@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { Logger } from '../utils/logger.util.js';
 import { swellClient } from '../utils/swell-client.util.js';
+import { config } from '../utils/config.util.js';
 import {
 	createApiError,
 	createUnexpectedError,
@@ -89,6 +90,16 @@ async function list(
 
 		// Make the API call
 		const rawData = await client.get<unknown>('/products', queryParams);
+
+		// Check if debug mode is enabled
+		const isDebugMode = config.getBoolean('DEBUG', false);
+
+		if (isDebugMode) {
+			methodLogger.debug(
+				'Debug mode enabled - returning raw data without validation',
+			);
+			return rawData as SwellProductsList;
+		}
 
 		// Validate response with Zod schema
 		const validatedData = SwellProductsListSchema.parse(rawData);
@@ -181,6 +192,16 @@ async function get(
 		// Handle null response (product not found)
 		if (!rawData) {
 			throw createApiError(`Product not found: ${productId}`, 404);
+		}
+
+		// Check if debug mode is enabled
+		const isDebugMode = config.getBoolean('DEBUG', false);
+
+		if (isDebugMode) {
+			methodLogger.debug(
+				'Debug mode enabled - returning raw data without validation',
+			);
+			return rawData as SwellProduct;
 		}
 
 		// Validate response with Zod schema

@@ -1,4 +1,5 @@
 import { Logger } from '../utils/logger.util.js';
+import { config } from '../utils/config.util.js';
 import swellOrdersService from '../services/swell.orders.service.js';
 import {
 	formatOrdersList,
@@ -140,13 +141,21 @@ async function list(
 		const data = await swellOrdersService.list(options);
 
 		methodLogger.debug(
-			`Successfully retrieved ${data.results.length} orders`,
+			`Successfully retrieved ${data.results?.length || 'unknown'} orders`,
 			{
 				count: data.count,
 				page: data.page,
 				pages: data.pages,
 			},
 		);
+
+		// Check if debug mode is enabled
+		const isDebugMode = config.getBoolean('DEBUG', false);
+		
+		if (isDebugMode) {
+			methodLogger.debug('Debug mode enabled - returning raw JSON');
+			return { content: JSON.stringify(data, null, 2) };
+		}
 
 		// Format the response
 		const formattedContent = formatOrdersList(data, options);
