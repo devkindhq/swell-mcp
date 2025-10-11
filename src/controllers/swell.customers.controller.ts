@@ -1,4 +1,5 @@
 import { Logger } from '../utils/logger.util.js';
+import { config } from '../utils/config.util.js';
 import swellCustomersService from '../services/swell.customers.service';
 import {
 	formatCustomersList,
@@ -18,6 +19,7 @@ import {
 	CustomerGetOptions,
 	CustomerOrderHistoryOptions,
 	CustomerAnalyticsOptions,
+	CustomerUpdateOptions,
 } from '../services/swell.customers.types';
 
 /**
@@ -577,10 +579,195 @@ function isValidISODate(dateString: string): boolean {
 	return date instanceof Date && !isNaN(date.getTime());
 }
 
+/**
+ * @function update
+ * @description Updates customer information with validation and formatting.
+ * @memberof SwellCustomersController
+ * @param {Object} args - Arguments containing customer ID and update data
+ * @param {string} args.customerId - The ID of the customer to update
+ * @param {string} [args.firstName] - Customer's first name
+ * @param {string} [args.lastName] - Customer's last name
+ * @param {string} [args.email] - Customer's email address
+ * @param {string} [args.phone] - Customer's phone number
+ * @param {Object} [args.billingAddress] - Customer's billing address
+ * @param {Object} [args.shippingAddress] - Customer's shipping address
+ * @param {string} [args.notes] - Customer notes
+ * @param {string[]} [args.tags] - Customer tags
+ * @returns {Promise<ControllerResponse>} A promise that resolves to formatted customer update result
+ * @throws {McpError} Throws an McpError if the customer is not found or update fails
+ */
+async function update(args: {
+	customerId: string;
+	firstName?: string;
+	lastName?: string;
+	email?: string;
+	phone?: string;
+	billingAddress?: any;
+	shippingAddress?: any;
+	notes?: string;
+	tags?: string[];
+	groupId?: string;
+	emailOptin?: boolean;
+	smsOptin?: boolean;
+}): Promise<ControllerResponse> {
+	const methodLogger = Logger.forContext(
+		'controllers/swell.customers.controller.ts',
+		'update',
+	);
+	methodLogger.debug(`Updating customer ${args.customerId}`, args);
+
+	try {
+		// Validate required parameters
+		if (!args.customerId || args.customerId.trim().length === 0) {
+			throw createApiError('Customer ID is required', 400);
+		}
+
+		// Build update options
+		const updateOptions: CustomerUpdateOptions = {};
+		
+		if (args.firstName !== undefined) {
+			updateOptions.first_name = args.firstName;
+		}
+		if (args.lastName !== undefined) {
+			updateOptions.last_name = args.lastName;
+		}
+		if (args.email !== undefined) {
+			updateOptions.email = args.email;
+		}
+		if (args.phone !== undefined) {
+			updateOptions.phone = args.phone;
+		}
+		if (args.billingAddress !== undefined) {
+			updateOptions.billing = args.billingAddress;
+		}
+		if (args.shippingAddress !== undefined) {
+			updateOptions.shipping = args.shippingAddress;
+		}
+		if (args.notes !== undefined) {
+			updateOptions.notes = args.notes;
+		}
+		if (args.tags !== undefined) {
+			updateOptions.tags = args.tags;
+		}
+		if (args.groupId !== undefined) {
+			updateOptions.group_id = args.groupId;
+		}
+		if (args.emailOptin !== undefined) {
+			updateOptions.email_optin = args.emailOptin;
+		}
+		if (args.smsOptin !== undefined) {
+			updateOptions.sms_optin = args.smsOptin;
+		}
+
+		// Validate that at least one field is being updated
+		if (Object.keys(updateOptions).length === 0) {
+			throw createApiError('At least one field must be provided for update', 400);
+		}
+
+		methodLogger.debug('Calling customers service with update options', {
+			customerId: args.customerId,
+			updateOptions,
+		});
+
+		// Call the service
+		const data = await swellCustomersService.update(args.customerId, updateOptions);
+
+		methodLogger.debug(`Successfully updated customer: ${data.first_name} ${data.last_name}`);
+
+		// Check if debug mode is enabled
+		const isDebugMode = config.getBoolean('DEBUG', false);
+		
+		if (isDebugMode) {
+			methodLogger.debug('Debug mode enabled - returning raw JSON');
+			return { content: JSON.stringify(data, null, 2) };
+		}
+
+		// Format the response
+		const formattedContent = formatCustomerUpdateResult(data, updateOptions);
+		return { content: formattedContent };
+	} catch (error) {
+		throw handleControllerError(
+			error,
+			buildErrorContext(
+				'Swell Customers',
+				'update',
+				'controllers/swell.customers.controller.ts@update',
+				args.customerId,
+				{ args },
+			),
+		);
+	}
+}
+
+/**
+ * Helper function to format customer update results
+ */
+function formatCustomerUpdateResult(customer: any, updateOptions: CustomerUpdateOptions): string {
+	const lines: string[] = [];
+	
+	lines.push('# Customer Update Successful');
+	lines.push('');
+	
+	// Customer information
+	lines.push('## Updated Customer Information');
+	lines.push(`- **Customer ID**: ${customer.id}`);
+	lines.push(`- **Name**: ${customer.first_name || ''} ${customer.last_name || ''}`.trim());
+	if (customer.email) {
+		lines.push(`- **Email**: ${customer.email}`);
+	}
+	if (customer.phone) {
+		lines.push(`- **Phone**: ${customer.phone}`);
+	}
+	lines.push(`- **Last Updated**: ${customer.date_updated || 'Just now'}`);
+	lines.push('');
+	
+	// Changes made
+	lines.push('## Changes Made');
+	const changes: string[] = [];
+	
+	if (updateOptions.first_name !== undefined) {
+		changes.push(`- **First Name**: Updated to "${updateOptions.first_name}"`);
+	}
+	if (updateOptions.last_name !== undefined) {
+		changes.push(`- **Last Name**: Updated to "${updateOptions.last_name}"`);
+	}
+	if (updateOptions.email !== undefined) {
+		changes.push(`- **Email**: Updated to "${updateOptions.email}"`);
+	}
+	if (updateOptions.phone !== undefined) {
+		changes.push(`- **Phone**: Updated to "${updateOptions.phone}"`);
+	}
+	if (updateOptions.billing !== undefined) {
+		changes.push(`- **Billing Address**: Updated`);
+	}
+	if (updateOptions.shipping !== undefined) {
+		changes.push(`- **Shipping Address**: Updated`);
+	}
+	if (updateOptions.notes !== undefined) {
+		changes.push(`- **Notes**: Updated`);
+	}
+	if (updateOptions.tags !== undefined) {
+		changes.push(`- **Tags**: Updated to [${updateOptions.tags.join(', ')}]`);
+	}
+	
+	if (changes.length > 0) {
+		lines.push(...changes);
+	} else {
+		lines.push('- No changes detected');
+	}
+	
+	lines.push('');
+	lines.push('---');
+	lines.push(`*Updated at ${new Date().toISOString()}*`);
+	
+	return lines.join('\n');
+}
+
 export default {
 	list,
 	get,
 	search,
 	getOrderHistory,
 	getAnalytics,
+	update,
 };

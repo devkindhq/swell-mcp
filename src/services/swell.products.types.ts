@@ -1,4 +1,9 @@
 import { z } from 'zod';
+import type {
+	UpdateError,
+	UpdateChange,
+	UpdateResult,
+} from '../types/common.types.js';
 
 /**
  * Zod Schema for Swell Product Image
@@ -135,3 +140,95 @@ export interface InventoryCheckOptions {
 	variant_id?: string;
 	include_variants?: boolean;
 }
+
+/**
+ * Valid stock status values
+ */
+export type StockStatus =
+	| 'in_stock'
+	| 'out_of_stock'
+	| 'backorder'
+	| 'preorder';
+
+/**
+ * Zod Schema for Product Update Options
+ */
+export const ProductUpdateOptionsSchema = z.object({
+	name: z.string().optional(),
+	description: z.string().nullable().optional(),
+	price: z.number().positive().optional(),
+	sale_price: z.number().positive().nullable().optional(),
+	sku: z.string().optional(),
+	active: z.boolean().optional(),
+	stock_level: z.number().int().min(0).optional(),
+	stock_status: z
+		.enum(['in_stock', 'out_of_stock', 'backorder', 'preorder'])
+		.optional(),
+	meta_title: z.string().optional(),
+	meta_description: z.string().optional(),
+	tags: z.array(z.string()).optional(),
+	categories: z.array(z.string()).optional(),
+	attributes: z.record(z.unknown()).optional(),
+});
+
+/**
+ * Options for product update operations
+ */
+export interface ProductUpdateOptions {
+	name?: string;
+	description?: string | null;
+	price?: number;
+	sale_price?: number | null;
+	sku?: string;
+	active?: boolean;
+	stock_level?: number;
+	stock_status?: StockStatus;
+	meta_title?: string;
+	meta_description?: string;
+	tags?: string[];
+	categories?: string[];
+	attributes?: Record<string, unknown>;
+}
+
+/**
+ * Zod Schema for Inventory Update Options
+ */
+export const InventoryUpdateOptionsSchema = z.object({
+	stock_level: z.number().int().min(0).optional(),
+	stock_status: z
+		.enum(['in_stock', 'out_of_stock', 'backorder', 'preorder'])
+		.optional(),
+	stock_tracking: z.boolean().optional(),
+});
+
+/**
+ * Options for inventory-specific updates
+ */
+export interface InventoryUpdateOptions {
+	stock_level?: number;
+	stock_status?: StockStatus;
+	stock_tracking?: boolean;
+}
+
+/**
+ * Zod Schema for Pricing Update Options
+ */
+export const PricingUpdateOptionsSchema = z.object({
+	price: z.number().positive().optional(),
+	sale_price: z.number().positive().nullable().optional(),
+	currency: z.string().optional(),
+});
+
+/**
+ * Options for pricing-specific updates
+ */
+export interface PricingUpdateOptions {
+	price?: number;
+	sale_price?: number | null;
+	currency?: string;
+}
+
+/**
+ * Re-export shared update types for convenience
+ */
+export type { UpdateError, UpdateChange, UpdateResult };

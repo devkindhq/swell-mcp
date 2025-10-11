@@ -151,7 +151,7 @@ async function list(
 
 		// Check if debug mode is enabled
 		const isDebugMode = config.getBoolean('DEBUG', false);
-		
+
 		if (isDebugMode) {
 			methodLogger.debug('Debug mode enabled - returning raw JSON');
 			return { content: JSON.stringify(data, null, 2) };

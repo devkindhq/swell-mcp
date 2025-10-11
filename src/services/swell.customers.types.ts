@@ -1,5 +1,14 @@
 import { z } from 'zod';
-import { SwellAddressSchema, SwellOrderSchema } from './swell.orders.types.js';
+import {
+	SwellAddressSchema,
+	SwellOrderSchema,
+	type SwellAddress,
+} from './swell.orders.types.js';
+import type {
+	UpdateError,
+	UpdateChange,
+	UpdateResult,
+} from '../types/common.types.js';
 
 /**
  * Zod Schema for Swell Customer Group
@@ -23,32 +32,32 @@ export const SwellAccountCreditSchema = z.object({
  */
 export const SwellCustomerSchema = z.object({
 	id: z.string(),
-	email: z.string().optional(),
-	first_name: z.string().optional(),
-	last_name: z.string().optional(),
-	name: z.string().optional(),
-	phone: z.string().optional(),
-	date_created: z.string().optional(),
-	date_updated: z.string().optional(),
-	order_count: z.number().optional(),
-	order_value: z.number().optional(),
-	balance: z.number().optional(),
-	account_credit_amount: z.number().optional(),
-	account_credit: SwellAccountCreditSchema.optional(),
-	group: SwellCustomerGroupSchema.optional(),
-	group_id: z.string().optional(),
-	addresses: z.array(SwellAddressSchema).optional(),
-	billing: SwellAddressSchema.optional(),
-	shipping: SwellAddressSchema.optional(),
-	notes: z.string().optional(),
-	tags: z.array(z.string()).optional(),
-	metadata: z.record(z.unknown()).optional(),
-	email_optin: z.boolean().optional(),
-	sms_optin: z.boolean().optional(),
-	currency: z.string().optional(),
-	date_first_order: z.string().optional(),
-	date_last_order: z.string().optional(),
-	orders: z.array(SwellOrderSchema).optional(),
+	email: z.string().nullable().optional(),
+	first_name: z.string().nullable().optional(),
+	last_name: z.string().nullable().optional(),
+	name: z.string().nullable().optional(),
+	phone: z.string().nullable().optional(),
+	date_created: z.string().nullable().optional(),
+	date_updated: z.string().nullable().optional(),
+	order_count: z.number().nullable().optional(),
+	order_value: z.number().nullable().optional(),
+	balance: z.number().nullable().optional(),
+	account_credit_amount: z.number().nullable().optional(),
+	account_credit: SwellAccountCreditSchema.nullable().optional(),
+	group: SwellCustomerGroupSchema.nullable().optional(),
+	group_id: z.string().nullable().optional(),
+	addresses: z.union([z.array(SwellAddressSchema), z.object({})]).optional(),
+	billing: SwellAddressSchema.nullable().optional(),
+	shipping: SwellAddressSchema.nullable().optional(),
+	notes: z.string().nullable().optional(),
+	tags: z.array(z.string()).nullable().optional(),
+	metadata: z.record(z.unknown()).nullable().optional(),
+	email_optin: z.boolean().nullable().optional(),
+	sms_optin: z.boolean().nullable().optional(),
+	currency: z.string().nullable().optional(),
+	date_first_order: z.string().nullable().optional(),
+	date_last_order: z.string().nullable().optional(),
+	orders: z.union([z.array(SwellOrderSchema), z.object({})]).optional(),
 });
 
 /**
@@ -58,7 +67,7 @@ export const SwellCustomersListSchema = z.object({
 	count: z.number(),
 	results: z.array(SwellCustomerSchema),
 	page: z.number().optional(),
-	pages: z.number().optional(),
+	pages: z.union([z.number(), z.object({})]).optional(),
 });
 
 /**
@@ -151,3 +160,58 @@ export interface CustomerAnalyticsOptions {
 		| 'lifetime_value'
 	)[];
 }
+
+/**
+ * Zod Schema for Customer Update Options
+ */
+export const CustomerUpdateOptionsSchema = z.object({
+	first_name: z.string().optional(),
+	last_name: z.string().optional(),
+	email: z.string().email().optional(),
+	phone: z.string().optional(),
+	billing: SwellAddressSchema.optional(),
+	shipping: SwellAddressSchema.optional(),
+	notes: z.string().optional(),
+	tags: z.array(z.string()).optional(),
+	group_id: z.string().optional(),
+	email_optin: z.boolean().optional(),
+	sms_optin: z.boolean().optional(),
+	metadata: z.record(z.unknown()).optional(),
+});
+
+/**
+ * Options for customer update operations
+ */
+export interface CustomerUpdateOptions {
+	first_name?: string;
+	last_name?: string;
+	email?: string;
+	phone?: string;
+	billing?: SwellAddress;
+	shipping?: SwellAddress;
+	notes?: string;
+	tags?: string[];
+	group_id?: string;
+	email_optin?: boolean;
+	sms_optin?: boolean;
+	metadata?: Record<string, unknown>;
+}
+
+/**
+ * Validation result for customer updates
+ */
+export interface CustomerUpdateValidation {
+	email?: {
+		format: boolean;
+		unique: boolean;
+	};
+	phone?: {
+		format: boolean;
+	};
+	required_fields: string[];
+}
+
+/**
+ * Re-export shared update types for convenience
+ */
+export type { UpdateError, UpdateChange, UpdateResult };

@@ -240,7 +240,7 @@ export function formatCustomerDetails(customer: SwellCustomer): string {
 	}
 
 	// Add addresses if available
-	if (customer.addresses && customer.addresses.length > 0) {
+	if (customer.addresses && Array.isArray(customer.addresses) && customer.addresses.length > 0) {
 		lines.push(formatHeading('Addresses', 2));
 
 		for (let i = 0; i < customer.addresses.length; i++) {
@@ -310,7 +310,7 @@ export function formatCustomerDetails(customer: SwellCustomer): string {
 	}
 
 	// Add recent orders if available
-	if (customer.orders && customer.orders.length > 0) {
+	if (customer.orders && Array.isArray(customer.orders) && customer.orders.length > 0) {
 		lines.push(formatHeading('Recent Orders', 2));
 		lines.push('');
 
@@ -319,7 +319,7 @@ export function formatCustomerDetails(customer: SwellCustomer): string {
 		lines.push('|---|---|---|---|---|');
 
 		// Show up to 10 most recent orders
-		const recentOrders = customer.orders.slice(0, 10);
+		const recentOrders = Array.isArray(customer.orders) ? customer.orders.slice(0, 10) : [];
 		for (const order of recentOrders) {
 			const orderNumber = order.number || order.id;
 			const date = formatDate(order.date_created);
@@ -332,10 +332,10 @@ export function formatCustomerDetails(customer: SwellCustomer): string {
 			);
 		}
 
-		if (customer.orders.length > 10) {
+		if (Array.isArray(customer.orders) && customer.orders.length > 10) {
 			lines.push('');
 			lines.push(
-				`*Showing 10 most recent orders out of ${customer.orders.length} total orders.*`,
+				`*Showing 10 most recent orders out of ${Array.isArray(customer.orders) ? customer.orders.length : 0} total orders.*`,
 			);
 		}
 		lines.push('');
@@ -708,7 +708,7 @@ function formatOrderStatus(status?: string): string {
 /**
  * Format currency value
  */
-function formatCurrency(amount?: number): string {
+function formatCurrency(amount?: number | null): string {
 	if (amount === undefined || amount === null) {
 		return '$0.00';
 	}
@@ -720,8 +720,8 @@ function formatCurrency(amount?: number): string {
  * Format average order value
  */
 function formatAverageOrderValue(
-	totalValue?: number,
-	orderCount?: number,
+	totalValue?: number | null,
+	orderCount?: number | null,
 ): string {
 	if (!totalValue || !orderCount || orderCount === 0) {
 		return '$0.00';

@@ -31,13 +31,15 @@ export const SwellOrderItemSchema = z.object({
 	price_total: z.number().optional(),
 	discount_total: z.number().optional(),
 	tax_total: z.number().optional(),
-	delivery: z.union([
-		z.object({
-			service: z.string().optional(),
-			price: z.number().optional(),
-		}),
-		z.string(),
-	]).optional(),
+	delivery: z
+		.union([
+			z.object({
+				service: z.string().optional(),
+				price: z.number().optional(),
+			}),
+			z.string(),
+		])
+		.optional(),
 	options: z.array(z.unknown()).optional(),
 });
 

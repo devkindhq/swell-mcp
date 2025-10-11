@@ -130,6 +130,25 @@ const SwellSearchCustomersSchema = z.object({
 });
 
 /**
+ * Zod schema for the swell_update_customer tool arguments
+ */
+const SwellUpdateCustomerSchema = z.object({
+	customerId: z.string().min(1).describe('The ID of the customer to update'),
+	firstName: z.string().optional().describe("Customer's first name"),
+	lastName: z.string().optional().describe("Customer's last name"),
+	email: z.string().email().optional().describe("Customer's email address"),
+	phone: z.string().optional().describe("Customer's phone number"),
+	notes: z.string().optional().describe('Customer notes'),
+	tags: z.array(z.string()).optional().describe('Customer tags'),
+	groupId: z.string().optional().describe('Customer group ID'),
+	emailOptin: z
+		.boolean()
+		.optional()
+		.describe('Email marketing opt-in status'),
+	smsOptin: z.boolean().optional().describe('SMS marketing opt-in status'),
+});
+
+/**
  * @function handleSwellListCustomers
  * @description MCP Tool handler to list customers with search capabilities.
  * @param {Record<string, unknown>} args - Arguments provided to the tool
@@ -259,6 +278,56 @@ async function handleSwellSearchCustomers(args: Record<string, unknown>) {
 }
 
 /**
+ * @function handleSwellUpdateCustomer
+ * @description MCP Tool handler to update customer information.
+ * @param {Record<string, unknown>} args - Arguments provided to the tool
+ * @returns {Promise<{ content: Array<{ type: 'text', text: string }> }>} Formatted response for the MCP
+ * @throws {McpError} Formatted error if the controller or service layer encounters an issue
+ */
+async function handleSwellUpdateCustomer(args: Record<string, unknown>) {
+	const methodLogger = Logger.forContext(
+		'tools/swell.customers.tool.ts',
+		'handleSwellUpdateCustomer',
+	);
+	methodLogger.debug(`Updating Swell customer ${args.customerId}...`, args);
+
+	try {
+		// Pass args directly to the controller
+		const result = await swellCustomersController.update(
+			args as {
+				customerId: string;
+				firstName?: string;
+				lastName?: string;
+				email?: string;
+				phone?: string;
+				notes?: string;
+				tags?: string[];
+				groupId?: string;
+				emailOptin?: boolean;
+				smsOptin?: boolean;
+			},
+		);
+		methodLogger.debug('Got the response from the controller', result);
+
+		// Format the response for the MCP tool
+		return {
+			content: [
+				{
+					type: 'text' as const,
+					text: result.content,
+				},
+			],
+		};
+	} catch (error) {
+		methodLogger.error(
+			`Error updating Swell customer ${args.customerId}`,
+			error,
+		);
+		return formatErrorForMcpTool(error);
+	}
+}
+
+/**
  * @function registerTools
  * @description Registers the Swell customer management tools with the MCP server.
  * @param {McpServer} server - The MCP server instance
@@ -289,6 +358,13 @@ function registerTools(server: McpServer) {
 		'Search for customers in your Swell store using text queries. Searches across customer names, email addresses, and phone numbers. Returns ranked results with match information and supports filtering by date range and sorting options.',
 		SwellSearchCustomersSchema.shape,
 		handleSwellSearchCustomers,
+	);
+
+	server.tool(
+		'swell_update_customer',
+		'Update customer information in your Swell store. Allows modification of customer details including name, email, phone, notes, tags, and marketing preferences. Use this tool to correct customer information or update their profile.',
+		SwellUpdateCustomerSchema.shape,
+		handleSwellUpdateCustomer,
 	);
 
 	methodLogger.debug(

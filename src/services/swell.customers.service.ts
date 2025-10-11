@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { Logger } from '../utils/logger.util.js';
+import { config } from '../utils/config.util.js';
 import { swellClient } from '../utils/swell-client.util.js';
 import {
 	createApiError,
@@ -16,6 +17,8 @@ import {
 	CustomerGetOptions,
 	CustomerOrderHistoryOptions,
 	CustomerAnalyticsOptions,
+	CustomerUpdateOptions,
+	CustomerUpdateOptionsSchema,
 } from './swell.customers.types.js';
 import { SwellOrdersList } from './swell.orders.types.js';
 import swellOrdersService from './swell.orders.service.js';
@@ -490,10 +493,115 @@ async function getAnalytics(
 	}
 }
 
+/**
+ * @function update
+ * @description Updates customer information in Swell.
+ * @memberof SwellCustomersService
+ * @param {string} customerId - The ID of the customer to update
+ * @param {CustomerUpdateOptions} updateData - The customer data to update
+ * @returns {Promise<SwellCustomer>} A promise that resolves to the updated customer
+ * @throws {McpError} Throws an `McpError` if the customer is not found or API call fails
+ * @example
+ * // Update customer name
+ * const updatedCustomer = await update('customer-id-123', {
+ *   first_name: 'Babar',
+ *   last_name: 'Ali'
+ * });
+ * // Update customer email and phone
+ * const updatedCustomer = await update('customer-id-123', {
+ *   email: 'babar.ali@example.com',
+ *   phone: '+1234567890'
+ * });
+ */
+async function update(
+	customerId: string,
+	updateData: CustomerUpdateOptions,
+): Promise<SwellCustomer> {
+	const methodLogger = serviceLogger.forMethod('update');
+	methodLogger.debug(`Updating customer ${customerId}`, {
+		customerId,
+		updateData,
+	});
+
+	if (!customerId || customerId.trim().length === 0) {
+		throw createApiError('Customer ID is required', 400);
+	}
+
+	try {
+		// Ensure client is initialized
+		if (!swellClient.isClientInitialized()) {
+			swellClient.initWithAutoConfig();
+		}
+
+		const client = swellClient.getClient();
+
+		// Validate update data with Zod schema
+		const validatedData = CustomerUpdateOptionsSchema.parse(updateData);
+
+		// Make the API call
+		const rawData = await client.put<unknown>(
+			`/accounts/${customerId}`,
+			validatedData,
+		);
+
+		// Handle null response (customer not found)
+		if (!rawData) {
+			throw createApiError(`Customer not found: ${customerId}`, 404);
+		}
+
+		// Check if debug mode is enabled
+		const isDebugMode = config.getBoolean('DEBUG', false);
+
+		if (isDebugMode) {
+			methodLogger.debug(
+				'Debug mode enabled - returning raw data without validation',
+			);
+			return rawData as SwellCustomer;
+		}
+
+		// Validate response with Zod schema
+		const validatedCustomer = SwellCustomerSchema.parse(rawData);
+
+		methodLogger.debug(
+			`Successfully updated customer: ${validatedCustomer.first_name} ${validatedCustomer.last_name}`,
+		);
+
+		return validatedCustomer;
+	} catch (error) {
+		methodLogger.error(
+			`Service error updating customer ${customerId}`,
+			error,
+		);
+
+		// Handle Zod validation errors
+		if (error instanceof z.ZodError) {
+			throw createApiError(
+				`Customer update validation failed: ${error.issues
+					.map((e: z.ZodIssue) => `${e.path.join('.')}: ${e.message}`)
+					.join(', ')}`,
+				400,
+				error,
+			);
+		}
+
+		// Rethrow other McpErrors
+		if (error instanceof McpError) {
+			throw error;
+		}
+
+		// Wrap any other unexpected errors
+		throw createUnexpectedError(
+			`Unexpected service error while updating customer ${customerId}`,
+			error,
+		);
+	}
+}
+
 export default {
 	list,
 	get,
 	search,
 	getOrderHistory,
 	getAnalytics,
+	update,
 };

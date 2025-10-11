@@ -104,9 +104,11 @@ async function list(options: OrderListOptions = {}): Promise<SwellOrdersList> {
 
 		// Check if debug mode is enabled
 		const isDebugMode = config.getBoolean('DEBUG', false);
-		
+
 		if (isDebugMode) {
-			methodLogger.debug('Debug mode enabled - returning raw data without validation');
+			methodLogger.debug(
+				'Debug mode enabled - returning raw data without validation',
+			);
 			return rawData as SwellOrdersList;
 		}
 
