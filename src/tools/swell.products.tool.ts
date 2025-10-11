@@ -165,32 +165,16 @@ const SwellUpdateProductSchema = z.object({
 });
 
 /**
- * Zod schema for the swell_update_product_stock tool arguments
+ * Zod schema for the swell_update_product_stock tool arguments (adjustment-only)
  */
 const SwellUpdateProductStockSchema = z.object({
 	productId: z
 		.string()
 		.min(1)
 		.describe('The ID of the product to update stock for'),
-	stockLevel: z
-		.number()
-		.int()
-		.min(0)
-		.optional()
-		.describe('Stock level (must be non-negative)'),
-	stockStatus: z
-		.enum(['in_stock', 'out_of_stock', 'backorder', 'preorder'])
-		.optional()
-		.describe('Stock status'),
-	stockTracking: z
-		.boolean()
-		.optional()
-		.describe('Whether to enable stock tracking'),
-	// Adjustment-specific fields
 	quantity: z
 		.number()
 		.int()
-		.optional()
 		.describe(
 			'Quantity adjustment (positive to increase, negative to decrease)',
 		),
@@ -218,6 +202,11 @@ const SwellUpdateProductStockSchema = z.object({
 		.optional()
 		.describe('Optional order ID when adjustment is related to an order'),
 });
+
+/**
+ * Zod schema for the swell_update_product_stock tool arguments
+ */
+// adjustment-only SwellUpdateProductStockSchema is defined earlier (only accepts quantity/reason/etc.)
 
 /**
  * Zod schema for the swell_update_product_pricing tool arguments
@@ -492,9 +481,6 @@ async function handleSwellUpdateProductStock(args: Record<string, unknown>) {
 		const result = await swellProductsController.updateStock(
 			args as {
 				productId: string;
-				stockLevel?: number;
-				stockStatus?: string;
-				stockTracking?: boolean;
 				quantity?: number;
 				reason?:
 					| 'received'

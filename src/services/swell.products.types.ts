@@ -196,11 +196,7 @@ export interface ProductUpdateOptions {
  * Zod Schema for Stock Update Options
  */
 export const StockUpdateOptionsSchema = z.object({
-	stock_level: z.number().int().min(0).optional(),
-	stock_status: z
-		.enum(['in_stock', 'out_of_stock', 'backorder', 'preorder'])
-		.optional(),
-	stock_tracking: z.boolean().optional(),
+	// adjustment-specific fields (quantity-based adjustments handled by /products:stock)
 	// Adjustment-specific fields
 	parent_id: z.string().optional(),
 	quantity: z.number().int().optional(),
@@ -223,9 +219,7 @@ export const StockUpdateOptionsSchema = z.object({
  * Options for stock-specific updates
  */
 export interface StockUpdateOptions {
-	stock_level?: number;
-	stock_status?: StockStatus;
-	stock_tracking?: boolean;
+	// adjustments are quantity-based; product-level stock/status updates are not supported here
 	// Adjustment-specific fields
 	parent_id?: string;
 	quantity?: number;

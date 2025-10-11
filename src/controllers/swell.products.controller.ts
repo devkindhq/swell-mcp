@@ -539,9 +539,6 @@ async function update(args: {
  */
 async function updateStock(args: {
 	productId: string;
-	stockLevel?: number;
-	stockStatus?: string;
-	stockTracking?: boolean;
 	// Adjustment-specific
 	quantity?: number;
 	reason?:
@@ -572,31 +569,6 @@ async function updateStock(args: {
 
 		// Build stock update data from arguments
 		const stockData: StockUpdateOptions = {};
-
-		if (args.stockLevel !== undefined) {
-			if (args.stockLevel < 0) {
-				throw createApiError('Stock level cannot be negative', 400);
-			}
-			stockData.stock_level = args.stockLevel;
-		}
-		if (args.stockStatus !== undefined) {
-			const validStatuses = [
-				'in_stock',
-				'out_of_stock',
-				'backorder',
-				'preorder',
-			];
-			if (!validStatuses.includes(args.stockStatus)) {
-				throw createApiError(
-					`Invalid stock status. Must be one of: ${validStatuses.join(', ')}`,
-					400,
-				);
-			}
-			stockData.stock_status = args.stockStatus as StockStatus;
-		}
-		if (args.stockTracking !== undefined) {
-			stockData.stock_tracking = args.stockTracking;
-		}
 
 		// Adjustment-specific mapping
 		if (args.quantity !== undefined) {

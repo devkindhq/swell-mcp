@@ -631,23 +631,11 @@ async function updateStock(
 		// If quantity provided, use it directly
 		if (typeof stockData.quantity === 'number') {
 			payload.quantity = stockData.quantity;
-		} else if (typeof stockData.stock_level === 'number') {
-			// Need to fetch current product to compute delta
-			let currentProduct: SwellProduct | null = null;
-			try {
-				currentProduct = await get(productId);
-			} catch (err) {
-				if (err instanceof McpError && (err as any).status === 404) {
-					throw createApiError(
-						`Product not found: ${productId}`,
-						404,
-					);
-				}
-				throw err;
-			}
-
-			const currentLevel = currentProduct.stock_level ?? 0;
-			payload.quantity = stockData.stock_level - currentLevel;
+		} else {
+			throw createApiError(
+				'Quantity is required for stock adjustments',
+				400,
+			);
 		}
 
 		// Attach optional adjustment fields
@@ -682,22 +670,10 @@ async function updateStock(
 			oldValue: unknown;
 			newValue: unknown;
 		}> = [];
+		// Build a stock_level change record based on the provided quantity
 		if (typeof stockData.quantity === 'number') {
-			// We don't have original level here unless fetched earlier; fetch original if needed
-			// For simplicity, compute using updatedProduct and quantity
 			const newLevel = updatedProduct.stock_level ?? 0;
 			const oldLevel = newLevel - (stockData.quantity || 0);
-			if (oldLevel !== newLevel) {
-				changes.push({
-					field: 'stock_level',
-					oldValue: oldLevel,
-					newValue: newLevel,
-				});
-			}
-		} else if (typeof stockData.stock_level === 'number') {
-			// old level was computed earlier
-			const newLevel = updatedProduct.stock_level ?? 0;
-			const oldLevel = newLevel - (payload.quantity as number);
 			if (oldLevel !== newLevel) {
 				changes.push({
 					field: 'stock_level',
