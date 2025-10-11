@@ -49,8 +49,17 @@ describe('Swell Products Tools Integration', () => {
 		mockController.search.mockResolvedValue({
 			content: 'Mocked search results response',
 		});
-		mockController.checkInventory.mockResolvedValue({
-			content: 'Mocked inventory response',
+		mockController.checkStock.mockResolvedValue({
+			content: 'Mocked stock response',
+		});
+		mockController.update.mockResolvedValue({
+			content: 'Mocked product update response',
+		});
+		mockController.updateStock.mockResolvedValue({
+			content: 'Mocked stock update response',
+		});
+		mockController.updatePricing.mockResolvedValue({
+			content: 'Mocked pricing update response',
 		});
 
 		// Mock error formatter
@@ -63,11 +72,18 @@ describe('Swell Products Tools Integration', () => {
 		it('should register all product tools with correct names and descriptions', () => {
 			swellProductsTools.registerTools(mockServer);
 
-			expect(mockServer.tool).toHaveBeenCalledTimes(4);
+			expect(mockServer.tool).toHaveBeenCalledTimes(7);
 			expect(registeredTools.has('swell_list_products')).toBe(true);
 			expect(registeredTools.has('swell_get_product')).toBe(true);
 			expect(registeredTools.has('swell_search_products')).toBe(true);
-			expect(registeredTools.has('swell_check_inventory')).toBe(true);
+			expect(registeredTools.has('swell_check_stock')).toBe(true);
+			expect(registeredTools.has('swell_update_product')).toBe(true);
+			expect(registeredTools.has('swell_update_product_stock')).toBe(
+				true,
+			);
+			expect(registeredTools.has('swell_update_product_pricing')).toBe(
+				true,
+			);
 		});
 
 		it('should register tools with proper descriptions', () => {
@@ -85,8 +101,8 @@ describe('Swell Products Tools Integration', () => {
 			expect(searchTool.description).toContain('Search for products');
 			expect(searchTool.description).toContain('text queries');
 
-			const inventoryTool = registeredTools.get('swell_check_inventory');
-			expect(inventoryTool.description).toContain('inventory levels');
+			const inventoryTool = registeredTools.get('swell_check_stock');
+			expect(inventoryTool.description).toContain('stock levels');
 			expect(inventoryTool.description).toContain('stock status');
 		});
 
@@ -106,7 +122,7 @@ describe('Swell Products Tools Integration', () => {
 			expect(searchTool.schema).toHaveProperty('query');
 			expect(searchTool.schema).toHaveProperty('page');
 
-			const inventoryTool = registeredTools.get('swell_check_inventory');
+			const inventoryTool = registeredTools.get('swell_check_stock');
 			expect(inventoryTool.schema).toHaveProperty('productId');
 			expect(inventoryTool.schema).toHaveProperty('includeVariants');
 		});
@@ -303,7 +319,7 @@ describe('Swell Products Tools Integration', () => {
 
 		beforeEach(() => {
 			swellProductsTools.registerTools(mockServer);
-			toolHandler = registeredTools.get('swell_check_inventory').handler;
+			toolHandler = registeredTools.get('swell_check_stock').handler;
 		});
 
 		it('should successfully check inventory', async () => {
@@ -314,12 +330,12 @@ describe('Swell Products Tools Integration', () => {
 
 			const result = await toolHandler(args);
 
-			expect(mockController.checkInventory).toHaveBeenCalledWith(args);
+			expect(mockController.checkStock).toHaveBeenCalledWith(args);
 			expect(result).toEqual({
 				content: [
 					{
 						type: 'text',
-						text: 'Mocked inventory response',
+						text: 'Mocked stock response',
 					},
 				],
 			});
@@ -330,7 +346,7 @@ describe('Swell Products Tools Integration', () => {
 				'Product ID is required',
 				ErrorType.API_ERROR,
 			);
-			mockController.checkInventory.mockRejectedValue(error);
+			mockController.checkStock.mockRejectedValue(error);
 			await toolHandler({ productId: '' });
 			expect(mockFormatError).toHaveBeenCalledWith(error);
 		});
@@ -340,7 +356,7 @@ describe('Swell Products Tools Integration', () => {
 
 			await toolHandler(args);
 
-			expect(mockController.checkInventory).toHaveBeenCalledWith(args);
+			expect(mockController.checkStock).toHaveBeenCalledWith(args);
 		});
 
 		it('should handle inventory API errors', async () => {
@@ -348,7 +364,7 @@ describe('Swell Products Tools Integration', () => {
 				'Inventory service error',
 				ErrorType.API_ERROR,
 			);
-			mockController.checkInventory.mockRejectedValue(error);
+			mockController.checkStock.mockRejectedValue(error);
 			await toolHandler({ productId: 'product-123' });
 			expect(mockFormatError).toHaveBeenCalledWith(error);
 		});
@@ -368,7 +384,7 @@ describe('Swell Products Tools Integration', () => {
 			mockController.list.mockRejectedValue(networkError);
 			mockController.get.mockRejectedValue(networkError);
 			mockController.search.mockRejectedValue(networkError);
-			mockController.checkInventory.mockRejectedValue(networkError);
+			mockController.checkStock.mockRejectedValue(networkError);
 
 			const listHandler = registeredTools.get(
 				'swell_list_products',
@@ -377,9 +393,8 @@ describe('Swell Products Tools Integration', () => {
 			const searchHandler = registeredTools.get(
 				'swell_search_products',
 			).handler;
-			const inventoryHandler = registeredTools.get(
-				'swell_check_inventory',
-			).handler;
+			const inventoryHandler =
+				registeredTools.get('swell_check_stock').handler;
 
 			await listHandler({});
 			await getHandler({ productId: 'test' });
@@ -471,7 +486,7 @@ describe('Swell Products Tools Integration', () => {
 				registeredTools.get('swell_list_products').handler,
 				registeredTools.get('swell_get_product').handler,
 				registeredTools.get('swell_search_products').handler,
-				registeredTools.get('swell_check_inventory').handler,
+				registeredTools.get('swell_check_stock').handler,
 			];
 
 			const args = [
@@ -501,9 +516,8 @@ describe('Swell Products Tools Integration', () => {
 			const searchHandler = registeredTools.get(
 				'swell_search_products',
 			).handler;
-			const inventoryHandler = registeredTools.get(
-				'swell_check_inventory',
-			).handler;
+			const inventoryHandler =
+				registeredTools.get('swell_check_stock').handler;
 
 			// Test missing required parameters
 			await getHandler({ productId: undefined });
@@ -516,7 +530,7 @@ describe('Swell Products Tools Integration', () => {
 			expect(mockController.search).toHaveBeenCalledWith({
 				query: undefined,
 			});
-			expect(mockController.checkInventory).toHaveBeenCalledWith({
+			expect(mockController.checkStock).toHaveBeenCalledWith({
 				productId: undefined,
 			});
 		});

@@ -624,7 +624,7 @@ async function update(args: {
 
 		// Build update options
 		const updateOptions: CustomerUpdateOptions = {};
-		
+
 		if (args.firstName !== undefined) {
 			updateOptions.first_name = args.firstName;
 		}
@@ -661,7 +661,10 @@ async function update(args: {
 
 		// Validate that at least one field is being updated
 		if (Object.keys(updateOptions).length === 0) {
-			throw createApiError('At least one field must be provided for update', 400);
+			throw createApiError(
+				'At least one field must be provided for update',
+				400,
+			);
 		}
 
 		methodLogger.debug('Calling customers service with update options', {
@@ -670,20 +673,28 @@ async function update(args: {
 		});
 
 		// Call the service
-		const data = await swellCustomersService.update(args.customerId, updateOptions);
+		const data = await swellCustomersService.update(
+			args.customerId,
+			updateOptions,
+		);
 
-		methodLogger.debug(`Successfully updated customer: ${data.first_name} ${data.last_name}`);
+		methodLogger.debug(
+			`Successfully updated customer: ${data.first_name} ${data.last_name}`,
+		);
 
 		// Check if debug mode is enabled
 		const isDebugMode = config.getBoolean('DEBUG', false);
-		
+
 		if (isDebugMode) {
 			methodLogger.debug('Debug mode enabled - returning raw JSON');
 			return { content: JSON.stringify(data, null, 2) };
 		}
 
 		// Format the response
-		const formattedContent = formatCustomerUpdateResult(data, updateOptions);
+		const formattedContent = formatCustomerUpdateResult(
+			data,
+			updateOptions,
+		);
 		return { content: formattedContent };
 	} catch (error) {
 		throw handleControllerError(
@@ -702,16 +713,21 @@ async function update(args: {
 /**
  * Helper function to format customer update results
  */
-function formatCustomerUpdateResult(customer: any, updateOptions: CustomerUpdateOptions): string {
+function formatCustomerUpdateResult(
+	customer: any,
+	updateOptions: CustomerUpdateOptions,
+): string {
 	const lines: string[] = [];
-	
+
 	lines.push('# Customer Update Successful');
 	lines.push('');
-	
+
 	// Customer information
 	lines.push('## Updated Customer Information');
 	lines.push(`- **Customer ID**: ${customer.id}`);
-	lines.push(`- **Name**: ${customer.first_name || ''} ${customer.last_name || ''}`.trim());
+	lines.push(
+		`- **Name**: ${customer.first_name || ''} ${customer.last_name || ''}`.trim(),
+	);
 	if (customer.email) {
 		lines.push(`- **Email**: ${customer.email}`);
 	}
@@ -720,16 +736,20 @@ function formatCustomerUpdateResult(customer: any, updateOptions: CustomerUpdate
 	}
 	lines.push(`- **Last Updated**: ${customer.date_updated || 'Just now'}`);
 	lines.push('');
-	
+
 	// Changes made
 	lines.push('## Changes Made');
 	const changes: string[] = [];
-	
+
 	if (updateOptions.first_name !== undefined) {
-		changes.push(`- **First Name**: Updated to "${updateOptions.first_name}"`);
+		changes.push(
+			`- **First Name**: Updated to "${updateOptions.first_name}"`,
+		);
 	}
 	if (updateOptions.last_name !== undefined) {
-		changes.push(`- **Last Name**: Updated to "${updateOptions.last_name}"`);
+		changes.push(
+			`- **Last Name**: Updated to "${updateOptions.last_name}"`,
+		);
 	}
 	if (updateOptions.email !== undefined) {
 		changes.push(`- **Email**: Updated to "${updateOptions.email}"`);
@@ -747,19 +767,21 @@ function formatCustomerUpdateResult(customer: any, updateOptions: CustomerUpdate
 		changes.push(`- **Notes**: Updated`);
 	}
 	if (updateOptions.tags !== undefined) {
-		changes.push(`- **Tags**: Updated to [${updateOptions.tags.join(', ')}]`);
+		changes.push(
+			`- **Tags**: Updated to [${updateOptions.tags.join(', ')}]`,
+		);
 	}
-	
+
 	if (changes.length > 0) {
 		lines.push(...changes);
 	} else {
 		lines.push('- No changes detected');
 	}
-	
+
 	lines.push('');
 	lines.push('---');
 	lines.push(`*Updated at ${new Date().toISOString()}*`);
-	
+
 	return lines.join('\n');
 }
 

@@ -15,7 +15,14 @@ import {
 	ProductListOptions,
 	ProductSearchOptions,
 	ProductGetOptions,
-	InventoryCheckOptions,
+	StockCheckOptions,
+	ProductUpdateOptions,
+	ProductUpdateOptionsSchema,
+	StockUpdateOptions,
+	StockUpdateOptionsSchema,
+	PricingUpdateOptions,
+	PricingUpdateOptionsSchema,
+	UpdateResult,
 } from './swell.products.types.js';
 
 // Create a contextualized logger for this file
@@ -180,7 +187,7 @@ async function get(
 		// Build query parameters
 		const queryParams: Record<string, unknown> = {};
 		if (options.expand && options.expand.length > 0) {
-			queryParams.expand = options.expand.join(',');
+			queryParams.expand = options.expand;
 		}
 
 		// Make the API call
@@ -310,28 +317,25 @@ async function search(
 }
 
 /**
- * @function checkInventory
- * @description Checks inventory levels for a product and optionally its variants.
+ * @function checkStock
+ * @description Checks stock levels for a product and optionally its variants.
  * @memberof SwellProductsService
- * @param {string} productId - The ID of the product to check inventory for
- * @param {InventoryCheckOptions} [options={}] - Optional inventory check options
- * @returns {Promise<SwellProduct>} A promise that resolves to the product with inventory information
+ * @param {string} productId - The ID of the product to check stock for
+ * @param {StockCheckOptions} [options={}] - Optional stock check options
+ * @returns {Promise<SwellProduct>} A promise that resolves to the product with stock information
  * @throws {McpError} Throws an `McpError` if the product is not found or API call fails
  * @example
- * // Check inventory for a product
- * const inventory = await checkInventory('product-id-123');
- * // Check inventory including variants
- * const fullInventory = await checkInventory('product-id-123', { include_variants: true });
+ * // Check stock for a product
+ * const stock = await checkStock('product-id-123');
+ * // Check stock including variants
+ * const fullStock = await checkStock('product-id-123', { include_variants: true });
  */
-async function checkInventory(
+async function checkStock(
 	productId: string,
-	options: InventoryCheckOptions = {},
+	options: StockCheckOptions = {},
 ): Promise<SwellProduct> {
-	const methodLogger = serviceLogger.forMethod('checkInventory');
-	methodLogger.debug(
-		`Checking inventory for product ID: ${productId}`,
-		options,
-	);
+	const methodLogger = serviceLogger.forMethod('checkStock');
+	methodLogger.debug(`Checking stock for product ID: ${productId}`, options);
 
 	if (!productId || productId.trim().length === 0) {
 		throw createApiError('Product ID is required', 400);
@@ -344,6 +348,7 @@ async function checkInventory(
 		if (options.include_variants) {
 			expandOptions.push('variants');
 		}
+		expandOptions.push('stock');
 
 		// Get product with inventory information
 		const product = await get(productId, { expand: expandOptions });
@@ -353,7 +358,9 @@ async function checkInventory(
 			{
 				stock_level: product.stock_level,
 				stock_status: product.stock_status,
-				variants_count: product.variants?.length || 0,
+				variants_count: Array.isArray(product.variants)
+					? product.variants.length
+					: 0,
 			},
 		);
 
@@ -377,9 +384,501 @@ async function checkInventory(
 	}
 }
 
+/**
+ * @function update
+ * @description Updates a product with the provided data.
+ * @memberof SwellProductsService
+ * @param {string} productId - The ID of the product to update
+ * @param {ProductUpdateOptions} updateData - The data to update the product with
+ * @returns {Promise<UpdateResult<SwellProduct>>} A promise that resolves to the update result
+ * @throws {McpError} Throws an `McpError` if the product is not found or update fails
+ * @example
+ * // Update product name and price
+ * const result = await update('product-id-123', { name: 'New Name', price: 29.99 });
+ * // Update product metadata
+ * const metaResult = await update('product-id-123', {
+ *   meta_title: 'SEO Title',
+ *   meta_description: 'SEO Description'
+ * });
+ */
+async function update(
+	productId: string,
+	updateData: ProductUpdateOptions,
+): Promise<UpdateResult<SwellProduct>> {
+	const methodLogger = serviceLogger.forMethod('update');
+	methodLogger.debug(`Updating product ID: ${productId}`, updateData);
+
+	if (!productId || productId.trim().length === 0) {
+		throw createApiError('Product ID is required', 400);
+	}
+
+	if (!updateData || Object.keys(updateData).length === 0) {
+		throw createApiError('Update data is required', 400);
+	}
+
+	try {
+		// Ensure client is initialized
+		if (!swellClient.isClientInitialized()) {
+			swellClient.initWithAutoConfig();
+		}
+
+		const client = swellClient.getClient();
+
+		// Check if debug mode is enabled
+		const isDebugMode = config.getBoolean('DEBUG', false);
+
+		// Get the current product for comparison (unless in debug mode)
+		let originalProduct: SwellProduct | null = null;
+		if (!isDebugMode) {
+			try {
+				originalProduct = await get(productId);
+			} catch (error) {
+				if (
+					error instanceof McpError &&
+					(error as any).status === 404
+				) {
+					throw createApiError(
+						`Product not found: ${productId}`,
+						404,
+					);
+				}
+				throw error;
+			}
+		}
+
+		// Validate update data (unless in debug mode)
+		if (!isDebugMode) {
+			ProductUpdateOptionsSchema.parse(updateData);
+		}
+
+		// Prepare the update payload
+		const updatePayload: Record<string, unknown> = { ...updateData };
+
+		// Handle special cases for pricing and inventory
+		if (updateData.price !== undefined) {
+			updatePayload.price = updateData.price;
+		}
+		if (updateData.sale_price !== undefined) {
+			updatePayload.sale_price = updateData.sale_price;
+		}
+		if (updateData.stock_level !== undefined) {
+			updatePayload.stock_level = updateData.stock_level;
+		}
+		if (updateData.stock_status !== undefined) {
+			updatePayload.stock_status = updateData.stock_status;
+		}
+
+		// Handle metadata updates
+		if (updateData.meta_title !== undefined) {
+			updatePayload.meta_title = updateData.meta_title;
+		}
+		if (updateData.meta_description !== undefined) {
+			updatePayload.meta_description = updateData.meta_description;
+		}
+
+		// Handle tags and categories
+		if (updateData.tags !== undefined) {
+			updatePayload.tags = updateData.tags;
+		}
+		if (updateData.categories !== undefined) {
+			updatePayload.categories = updateData.categories;
+		}
+
+		// Handle attributes
+		if (updateData.attributes !== undefined) {
+			updatePayload.attributes = updateData.attributes;
+		}
+
+		// Make the API call
+		const rawData = await client.put<unknown>(
+			`/products/${productId}`,
+			updatePayload,
+		);
+
+		if (isDebugMode) {
+			methodLogger.debug(
+				'Debug mode enabled - returning raw data without validation',
+			);
+			return {
+				success: true,
+				data: rawData as SwellProduct,
+			};
+		}
+
+		// Validate response with Zod schema
+		const updatedProduct = SwellProductSchema.parse(rawData);
+
+		// Calculate changes
+		const changes: Array<{
+			field: string;
+			oldValue: unknown;
+			newValue: unknown;
+		}> = [];
+
+		if (originalProduct) {
+			Object.keys(updateData).forEach((key) => {
+				const oldValue = (originalProduct as Record<string, unknown>)[
+					key
+				];
+				const newValue = (updatedProduct as Record<string, unknown>)[
+					key
+				];
+				if (oldValue !== newValue) {
+					changes.push({
+						field: key,
+						oldValue,
+						newValue,
+					});
+				}
+			});
+		}
+
+		methodLogger.debug(
+			`Successfully updated product: ${updatedProduct.name}`,
+			{ changes: changes.length },
+		);
+
+		return {
+			success: true,
+			data: updatedProduct,
+			changes,
+		};
+	} catch (error) {
+		methodLogger.error(
+			`Service error updating product ${productId}`,
+			error,
+		);
+
+		// Handle Zod validation errors
+		if (error instanceof z.ZodError) {
+			throw createApiError(
+				`Product update validation failed: ${error.issues
+					.map((e: z.ZodIssue) => `${e.path.join('.')}: ${e.message}`)
+					.join(', ')}`,
+				400,
+				error,
+			);
+		}
+
+		// Rethrow other McpErrors
+		if (error instanceof McpError) {
+			throw error;
+		}
+
+		// Wrap any other unexpected errors
+		throw createUnexpectedError(
+			`Unexpected service error while updating product ${productId}`,
+			error,
+		);
+	}
+}
+
+/**
+ * @function updateStock
+ * @description Updates stock-specific fields for a product.
+ * @memberof SwellProductsService
+ * @param {string} productId - The ID of the product to update stock for
+ * @param {StockUpdateOptions} stockData - The stock data to update
+ * @returns {Promise<UpdateResult<SwellProduct>>} A promise that resolves to the update result
+ * @throws {McpError} Throws an `McpError` if the product is not found or update fails
+ * @example
+ * // Update stock level
+ * const result = await updateStock('product-id-123', { stock_level: 50 });
+ * // Update stock status
+ * const statusResult = await updateStock('product-id-123', { stock_status: 'out_of_stock' });
+ */
+async function updateStock(
+	productId: string,
+	stockData: StockUpdateOptions,
+): Promise<UpdateResult<SwellProduct>> {
+	const methodLogger = serviceLogger.forMethod('updateStock');
+	methodLogger.debug(
+		`Updating stock for product ID: ${productId}`,
+		stockData,
+	);
+
+	if (!productId || productId.trim().length === 0) {
+		throw createApiError('Product ID is required', 400);
+	}
+
+	if (!stockData || Object.keys(stockData).length === 0) {
+		throw createApiError('Inventory data is required', 400);
+	}
+
+	try {
+		// Check if debug mode is enabled
+		const isDebugMode = config.getBoolean('DEBUG', false);
+
+		// Validate inventory data (unless in debug mode)
+		if (!isDebugMode) {
+			StockUpdateOptionsSchema.parse(stockData);
+		}
+
+		// Ensure client is initialized
+		if (!swellClient.isClientInitialized()) {
+			swellClient.initWithAutoConfig();
+		}
+
+		const client = swellClient.getClient();
+
+		// Prepare payload for stock adjustment endpoint
+		// Swell expects parent_id and quantity (delta). If caller provided an absolute stock_level,
+		// compute the delta by fetching current stock level.
+		const payload: Record<string, unknown> = {
+			parent_id: productId,
+		};
+
+		// If quantity provided, use it directly
+		if (typeof stockData.quantity === 'number') {
+			payload.quantity = stockData.quantity;
+		} else if (typeof stockData.stock_level === 'number') {
+			// Need to fetch current product to compute delta
+			let currentProduct: SwellProduct | null = null;
+			try {
+				currentProduct = await get(productId);
+			} catch (err) {
+				if (err instanceof McpError && (err as any).status === 404) {
+					throw createApiError(
+						`Product not found: ${productId}`,
+						404,
+					);
+				}
+				throw err;
+			}
+
+			const currentLevel = currentProduct.stock_level ?? 0;
+			payload.quantity = stockData.stock_level - currentLevel;
+		}
+
+		// Attach optional adjustment fields
+		if (stockData.reason !== undefined) {
+			payload.reason = stockData.reason;
+		}
+		if (stockData.reason_message !== undefined) {
+			payload.reason_message = stockData.reason_message;
+		}
+		if (stockData.variant_id !== undefined) {
+			payload.variant_id = stockData.variant_id;
+		}
+		if (stockData.order_id !== undefined) {
+			payload.order_id = stockData.order_id;
+		}
+
+		// If quantity is 0 (no-op), just return current product
+		if (payload.quantity === 0 || payload.quantity === '0') {
+			const prod = await get(productId);
+			return { success: true, data: prod, changes: [] };
+		}
+
+		// Make the adjustment call to Swell
+		await client.post('/products:stock', payload);
+
+		// After adjustment, fetch updated product for response
+		const updatedProduct = await get(productId);
+
+		// Build change record: stock_level changed by quantity
+		const changes: Array<{
+			field: string;
+			oldValue: unknown;
+			newValue: unknown;
+		}> = [];
+		if (typeof stockData.quantity === 'number') {
+			// We don't have original level here unless fetched earlier; fetch original if needed
+			// For simplicity, compute using updatedProduct and quantity
+			const newLevel = updatedProduct.stock_level ?? 0;
+			const oldLevel = newLevel - (stockData.quantity || 0);
+			if (oldLevel !== newLevel) {
+				changes.push({
+					field: 'stock_level',
+					oldValue: oldLevel,
+					newValue: newLevel,
+				});
+			}
+		} else if (typeof stockData.stock_level === 'number') {
+			// old level was computed earlier
+			const newLevel = updatedProduct.stock_level ?? 0;
+			const oldLevel = newLevel - (payload.quantity as number);
+			if (oldLevel !== newLevel) {
+				changes.push({
+					field: 'stock_level',
+					oldValue: oldLevel,
+					newValue: newLevel,
+				});
+			}
+		}
+
+		methodLogger.debug(
+			`Successfully created stock adjustment for product: ${updatedProduct.name}`,
+			{ quantity: payload.quantity },
+		);
+
+		return { success: true, data: updatedProduct, changes };
+	} catch (error) {
+		methodLogger.error(
+			`Service error updating inventory for product ${productId}`,
+			error,
+		);
+
+		// Rethrow McpErrors
+		if (error instanceof McpError) {
+			throw error;
+		}
+
+		// Wrap any other unexpected errors
+		throw createUnexpectedError(
+			`Unexpected service error while updating inventory for product ${productId}`,
+			error,
+		);
+	}
+}
+
+/**
+ * @function updatePricing
+ * @description Updates pricing-specific fields for a product.
+ * @memberof SwellProductsService
+ * @param {string} productId - The ID of the product to update pricing for
+ * @param {PricingUpdateOptions} pricingData - The pricing data to update
+ * @returns {Promise<UpdateResult<SwellProduct>>} A promise that resolves to the update result
+ * @throws {McpError} Throws an `McpError` if the product is not found or update fails
+ * @example
+ * // Update regular price
+ * const result = await updatePricing('product-id-123', { price: 29.99 });
+ * // Update both regular and sale price
+ * const priceResult = await updatePricing('product-id-123', {
+ *   price: 39.99,
+ *   sale_price: 29.99
+ * });
+ */
+async function updatePricing(
+	productId: string,
+	pricingData: PricingUpdateOptions,
+): Promise<UpdateResult<SwellProduct>> {
+	const methodLogger = serviceLogger.forMethod('updatePricing');
+	methodLogger.debug(
+		`Updating pricing for product ID: ${productId}`,
+		pricingData,
+	);
+
+	if (!productId || productId.trim().length === 0) {
+		throw createApiError('Product ID is required', 400);
+	}
+
+	if (!pricingData || Object.keys(pricingData).length === 0) {
+		throw createApiError('Pricing data is required', 400);
+	}
+
+	try {
+		// Check if debug mode is enabled
+		const isDebugMode = config.getBoolean('DEBUG', false);
+
+		// Validate pricing data (unless in debug mode)
+		if (!isDebugMode) {
+			PricingUpdateOptionsSchema.parse(pricingData);
+		}
+
+		// Convert pricing data to product update format
+		const updateData: ProductUpdateOptions = {};
+
+		if (pricingData.price !== undefined) {
+			updateData.price = pricingData.price;
+		}
+		if (pricingData.sale_price !== undefined) {
+			updateData.sale_price = pricingData.sale_price;
+		}
+
+		// Use the main update method
+		const result = await update(productId, updateData);
+
+		methodLogger.debug(
+			`Successfully updated pricing for product: ${result.data?.name}`,
+		);
+
+		return result;
+	} catch (error) {
+		methodLogger.error(
+			`Service error updating pricing for product ${productId}`,
+			error,
+		);
+
+		// Rethrow McpErrors
+		if (error instanceof McpError) {
+			throw error;
+		}
+
+		// Wrap any other unexpected errors
+		throw createUnexpectedError(
+			`Unexpected service error while updating pricing for product ${productId}`,
+			error,
+		);
+	}
+}
+
+/**
+ * @function updateStatus
+ * @description Updates the active status of a product (activation/deactivation).
+ * @memberof SwellProductsService
+ * @param {string} productId - The ID of the product to update status for
+ * @param {boolean} active - Whether the product should be active or inactive
+ * @returns {Promise<UpdateResult<SwellProduct>>} A promise that resolves to the update result
+ * @throws {McpError} Throws an `McpError` if the product is not found or update fails
+ * @example
+ * // Activate a product
+ * const result = await updateStatus('product-id-123', true);
+ * // Deactivate a product
+ * const deactivateResult = await updateStatus('product-id-123', false);
+ */
+async function updateStatus(
+	productId: string,
+	active: boolean,
+): Promise<UpdateResult<SwellProduct>> {
+	const methodLogger = serviceLogger.forMethod('updateStatus');
+	methodLogger.debug(
+		`Updating status for product ID: ${productId} to ${active ? 'active' : 'inactive'}`,
+	);
+
+	if (!productId || productId.trim().length === 0) {
+		throw createApiError('Product ID is required', 400);
+	}
+
+	if (typeof active !== 'boolean') {
+		throw createApiError('Active status must be a boolean value', 400);
+	}
+
+	try {
+		// Use the main update method
+		const result = await update(productId, { active });
+
+		methodLogger.debug(
+			`Successfully updated status for product: ${result.data?.name} to ${active ? 'active' : 'inactive'}`,
+		);
+
+		return result;
+	} catch (error) {
+		methodLogger.error(
+			`Service error updating status for product ${productId}`,
+			error,
+		);
+
+		// Rethrow McpErrors
+		if (error instanceof McpError) {
+			throw error;
+		}
+
+		// Wrap any other unexpected errors
+		throw createUnexpectedError(
+			`Unexpected service error while updating status for product ${productId}`,
+			error,
+		);
+	}
+}
+
 export default {
 	list,
 	get,
 	search,
-	checkInventory,
+	checkStock,
+	update,
+	updateStock,
+	updatePricing,
+	updateStatus,
 };

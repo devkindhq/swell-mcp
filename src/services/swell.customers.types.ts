@@ -44,7 +44,10 @@ export const SwellCustomerSchema = z.object({
 	balance: z.number().nullable().optional(),
 	account_credit_amount: z.number().nullable().optional(),
 	account_credit: SwellAccountCreditSchema.nullable().optional(),
-	group: SwellCustomerGroupSchema.nullable().optional(),
+	group: z
+		.union([SwellCustomerGroupSchema, z.string()])
+		.nullable()
+		.optional(),
 	group_id: z.string().nullable().optional(),
 	addresses: z.union([z.array(SwellAddressSchema), z.object({})]).optional(),
 	billing: SwellAddressSchema.nullable().optional(),

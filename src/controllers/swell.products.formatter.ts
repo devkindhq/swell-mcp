@@ -3,6 +3,7 @@ import {
 	SwellProductsList,
 	ProductListOptions,
 	ProductSearchOptions,
+	UpdateResult,
 } from '../services/swell.products.types.js';
 import {
 	formatDate,
@@ -95,7 +96,7 @@ export function formatProductsList(
  */
 export function formatProductDetails(
 	product: SwellProduct,
-	options: { focusInventory?: boolean } = {},
+	options: { focusStock?: boolean } = {},
 ): string {
 	const lines: string[] = [];
 
@@ -131,12 +132,10 @@ export function formatProductDetails(
 	lines.push(formatBulletList(pricingInfo));
 	lines.push('');
 
-	// Add inventory information (highlighted if focusInventory is true)
-	const inventoryHeading = options.focusInventory
-		? 'Inventory Status 📦'
-		: 'Inventory';
-	lines.push(formatHeading(inventoryHeading, 2));
-	const inventoryInfo: Record<string, unknown> = {
+	// Add stock information (highlighted if focusStock is true)
+	const stockHeading = options.focusStock ? 'Stock Status 📦' : 'Stock';
+	lines.push(formatHeading(stockHeading, 2));
+	const stockInfo: Record<string, unknown> = {
 		'Stock Level': product.stock_level ?? 'Not tracked',
 		'Stock Status': formatStockStatus(product.stock_status),
 		Availability: getAvailabilityMessage(
@@ -145,7 +144,7 @@ export function formatProductDetails(
 		),
 	};
 
-	lines.push(formatBulletList(inventoryInfo));
+	lines.push(formatBulletList(stockInfo));
 	lines.push('');
 
 	// Add description if available
@@ -156,7 +155,11 @@ export function formatProductDetails(
 	}
 
 	// Add categories if available
-	if (product.categories && product.categories.length > 0) {
+	if (
+		product.categories &&
+		Array.isArray(product.categories) &&
+		product.categories.length > 0
+	) {
 		lines.push(formatHeading('Categories', 2));
 		for (const category of product.categories) {
 			lines.push(
@@ -174,7 +177,11 @@ export function formatProductDetails(
 	}
 
 	// Add variants if available
-	if (product.variants && product.variants.length > 0) {
+	if (
+		product.variants &&
+		Array.isArray(product.variants) &&
+		product.variants.length > 0
+	) {
 		lines.push(formatHeading('Variants', 2));
 		lines.push('');
 
@@ -182,16 +189,20 @@ export function formatProductDetails(
 		lines.push('| Variant ID | Name | SKU | Price | Stock | Status |');
 		lines.push('|---|---|---|---|---|---|');
 
-		for (const variant of product.variants) {
-			const variantPrice = formatPrice(variant.price, variant.sale_price);
-			const variantStock = formatStock(
-				variant.stock_level,
-				variant.stock_status,
+		for (const variant of product.variants as unknown[]) {
+			const typedVariant = variant as any;
+			const variantPrice = formatPrice(
+				typedVariant.price,
+				typedVariant.sale_price,
 			);
-			const variantName = variant.name || 'Unnamed variant';
+			const variantStock = formatStock(
+				typedVariant.stock_level,
+				typedVariant.stock_status,
+			);
+			const variantName = typedVariant.name || 'Unnamed variant';
 
 			lines.push(
-				`| ${variant.id || 'N/A'} | ${variantName} | ${variant.sku || 'N/A'} | ${variantPrice} | ${variantStock} | ${formatStockStatus(variant.stock_status)} |`,
+				`| ${typedVariant.id || 'N/A'} | ${variantName} | ${typedVariant.sku || 'N/A'} | ${variantPrice} | ${variantStock} | ${formatStockStatus(typedVariant.stock_status)} |`,
 			);
 		}
 		lines.push('');
@@ -434,6 +445,115 @@ function getAvailabilityMessage(
 	}
 
 	return '❓ Stock status unknown';
+}
+
+/**
+ * Format product update result into structured Markdown.
+ * @param result - Update result from the service
+ * @param updateType - Type of update performed (for context)
+ * @returns Formatted Markdown string
+ */
+export function formatProductUpdate(
+	result: UpdateResult<SwellProduct>,
+	updateType: string = 'Product Update',
+): string {
+	const lines: string[] = [];
+
+	// Add main heading
+	lines.push(formatHeading(`${updateType} Result`, 1));
+	lines.push('');
+
+	// Add success status
+	if (result.success) {
+		lines.push('✅ **Update completed successfully**');
+	} else {
+		lines.push('❌ **Update failed**');
+	}
+	lines.push('');
+
+	// Add product information
+	if (result.data) {
+		lines.push(formatHeading('Updated Product', 2));
+		const productInfo: Record<string, unknown> = {
+			'Product ID': result.data.id,
+			Name: result.data.name,
+			SKU: result.data.sku || 'Not assigned',
+			Status: result.data.active ? '✅ Active' : '❌ Inactive',
+			'Current Price': formatPrice(
+				result.data.price,
+				result.data.sale_price,
+			),
+			'Stock Level': result.data.stock_level ?? 'Not tracked',
+			'Stock Status': formatStockStatus(result.data.stock_status),
+		};
+
+		lines.push(formatBulletList(productInfo));
+		lines.push('');
+	}
+
+	// Add changes summary
+	if (result.changes && result.changes.length > 0) {
+		lines.push(formatHeading('Changes Made', 2));
+		lines.push('');
+
+		// Create changes table
+		lines.push('| Field | Previous Value | New Value |');
+		lines.push('|---|---|---|');
+
+		for (const change of result.changes) {
+			const oldValue = formatChangeValue(change.oldValue);
+			const newValue = formatChangeValue(change.newValue);
+			lines.push(`| ${change.field} | ${oldValue} | ${newValue} |`);
+		}
+		lines.push('');
+	} else if (result.success) {
+		lines.push('*No changes were made (values were already up to date)*');
+		lines.push('');
+	}
+
+	// Add errors if any
+	if (result.errors && result.errors.length > 0) {
+		lines.push(formatHeading('Errors', 2));
+		for (const error of result.errors) {
+			lines.push(`- **${error.type}**: ${error.message}`);
+			if (error.field) {
+				lines.push(`  - Field: ${error.field}`);
+			}
+		}
+		lines.push('');
+	}
+
+	lines.push(formatSeparator());
+	lines.push(`*Update performed at ${formatDate(new Date())}*`);
+
+	return lines.join('\n');
+}
+
+/**
+ * Format a change value for display in the changes table
+ */
+function formatChangeValue(value: unknown): string {
+	if (value === null || value === undefined) {
+		return 'Not set';
+	}
+
+	if (typeof value === 'boolean') {
+		return value ? 'Yes' : 'No';
+	}
+
+	if (typeof value === 'number') {
+		return value.toString();
+	}
+
+	if (Array.isArray(value)) {
+		return value.length > 0 ? value.join(', ') : 'None';
+	}
+
+	if (typeof value === 'object') {
+		return JSON.stringify(value);
+	}
+
+	return String(value);
 }
 
 /**

@@ -69,8 +69,10 @@ export const SwellProductSchema = z.object({
 	meta_description: z.string().nullable().optional(),
 	meta_title: z.string().nullable().optional(),
 	images: z.array(SwellImageSchema).optional(),
-	variants: z.array(SwellVariantSchema).optional(),
-	categories: z.array(SwellCategorySchema).optional(),
+	variants: z.union([z.array(SwellVariantSchema), z.object({})]).optional(),
+	categories: z
+		.union([z.array(SwellCategorySchema), z.object({})])
+		.optional(),
 	attributes: z.record(z.unknown()).optional(),
 	options: z.array(z.unknown()).optional(),
 	tags: z.array(z.string()).optional(),
@@ -134,9 +136,9 @@ export interface ProductGetOptions {
 }
 
 /**
- * Options for inventory checking
+ * Options for stock checking
  */
-export interface InventoryCheckOptions {
+export interface StockCheckOptions {
 	variant_id?: string;
 	include_variants?: boolean;
 }
@@ -191,23 +193,52 @@ export interface ProductUpdateOptions {
 }
 
 /**
- * Zod Schema for Inventory Update Options
+ * Zod Schema for Stock Update Options
  */
-export const InventoryUpdateOptionsSchema = z.object({
+export const StockUpdateOptionsSchema = z.object({
 	stock_level: z.number().int().min(0).optional(),
 	stock_status: z
 		.enum(['in_stock', 'out_of_stock', 'backorder', 'preorder'])
 		.optional(),
 	stock_tracking: z.boolean().optional(),
+	// Adjustment-specific fields
+	parent_id: z.string().optional(),
+	quantity: z.number().int().optional(),
+	reason: z
+		.enum([
+			'received',
+			'returned',
+			'canceled',
+			'sold',
+			'missing',
+			'damaged',
+		])
+		.optional(),
+	reason_message: z.string().optional(),
+	variant_id: z.string().optional(),
+	order_id: z.string().optional(),
 });
 
 /**
- * Options for inventory-specific updates
+ * Options for stock-specific updates
  */
-export interface InventoryUpdateOptions {
+export interface StockUpdateOptions {
 	stock_level?: number;
 	stock_status?: StockStatus;
 	stock_tracking?: boolean;
+	// Adjustment-specific fields
+	parent_id?: string;
+	quantity?: number;
+	reason?:
+		| 'received'
+		| 'returned'
+		| 'canceled'
+		| 'sold'
+		| 'missing'
+		| 'damaged';
+	reason_message?: string;
+	variant_id?: string;
+	order_id?: string;
 }
 
 /**

@@ -7,7 +7,6 @@ import {
 	ProductListOptions,
 	ProductSearchOptions,
 	ProductGetOptions,
-	InventoryCheckOptions,
 } from './swell.products.types.js';
 
 // Mock the swell client utility
@@ -205,7 +204,7 @@ describe('SwellProductsService', () => {
 			const result = await swellProductsService.get('product-1', options);
 
 			expect(mockAxios.get).toHaveBeenCalledWith('/products/product-1', {
-				expand: 'variants,categories',
+				expand: options.expand,
 			});
 			expect(result).toEqual(mockProduct);
 		});
@@ -357,38 +356,37 @@ describe('SwellProductsService', () => {
 		it('should successfully check inventory for product', async () => {
 			mockAxios.get.mockResolvedValue(mockProductWithInventory);
 
-			const result =
-				await swellProductsService.checkInventory('product-1');
+			const result = await swellProductsService.checkStock('product-1');
 
-			expect(mockAxios.get).toHaveBeenCalledWith(
-				'/products/product-1',
-				{},
-			);
+			expect(mockAxios.get).toHaveBeenCalledWith('/products/product-1', {
+				expand: ['stock'],
+			});
 			expect(result).toEqual(mockProductWithInventory);
 		});
 
 		it('should check inventory including variants', async () => {
 			mockAxios.get.mockResolvedValue(mockProductWithInventory);
 
-			const options: InventoryCheckOptions = {
+			const options = {
 				include_variants: true,
+				expand: ['variants', 'stock'],
 			};
 
-			const result = await swellProductsService.checkInventory(
+			const result = await swellProductsService.checkStock(
 				'product-1',
 				options,
 			);
 
 			expect(mockAxios.get).toHaveBeenCalledWith('/products/product-1', {
-				expand: 'variants',
+				expand: ['variants', 'stock'],
 			});
 			expect(result).toEqual(mockProductWithInventory);
 		});
 
 		it('should throw error for empty product ID', async () => {
-			await expect(
-				swellProductsService.checkInventory(''),
-			).rejects.toThrow('Product ID is required');
+			await expect(swellProductsService.checkStock('')).rejects.toThrow(
+				'Product ID is required',
+			);
 		});
 
 		it('should handle inventory check API errors', async () => {
@@ -396,7 +394,7 @@ describe('SwellProductsService', () => {
 			mockAxios.get.mockRejectedValue(apiError);
 
 			await expect(
-				swellProductsService.checkInventory('product-1'),
+				swellProductsService.checkStock('product-1'),
 			).rejects.toThrow(McpError);
 		});
 	});

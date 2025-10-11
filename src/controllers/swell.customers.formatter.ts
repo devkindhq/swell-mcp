@@ -196,7 +196,11 @@ export function formatCustomerDetails(customer: SwellCustomer): string {
 		'Last Updated': customer.date_updated,
 	};
 
-	if (customer.group?.name) {
+	if (
+		customer.group &&
+		typeof customer.group === 'object' &&
+		customer.group.name
+	) {
 		customerInfo['Customer Group'] = customer.group.name;
 	}
 
@@ -240,7 +244,11 @@ export function formatCustomerDetails(customer: SwellCustomer): string {
 	}
 
 	// Add addresses if available
-	if (customer.addresses && Array.isArray(customer.addresses) && customer.addresses.length > 0) {
+	if (
+		customer.addresses &&
+		Array.isArray(customer.addresses) &&
+		customer.addresses.length > 0
+	) {
 		lines.push(formatHeading('Addresses', 2));
 
 		for (let i = 0; i < customer.addresses.length; i++) {
@@ -310,7 +318,11 @@ export function formatCustomerDetails(customer: SwellCustomer): string {
 	}
 
 	// Add recent orders if available
-	if (customer.orders && Array.isArray(customer.orders) && customer.orders.length > 0) {
+	if (
+		customer.orders &&
+		Array.isArray(customer.orders) &&
+		customer.orders.length > 0
+	) {
 		lines.push(formatHeading('Recent Orders', 2));
 		lines.push('');
 
@@ -319,7 +331,9 @@ export function formatCustomerDetails(customer: SwellCustomer): string {
 		lines.push('|---|---|---|---|---|');
 
 		// Show up to 10 most recent orders
-		const recentOrders = Array.isArray(customer.orders) ? customer.orders.slice(0, 10) : [];
+		const recentOrders = Array.isArray(customer.orders)
+			? customer.orders.slice(0, 10)
+			: [];
 		for (const order of recentOrders) {
 			const orderNumber = order.number || order.id;
 			const date = formatDate(order.date_created);
@@ -534,7 +548,11 @@ export function formatCustomerAnalytics(
 			'Last Order': customer.date_last_order || 'No orders',
 		};
 
-		if (customer.group?.name) {
+		if (
+			customer.group &&
+			typeof customer.group === 'object' &&
+			customer.group.name
+		) {
 			customerMetrics['Customer Group'] = customer.group.name;
 		}
 

@@ -49,6 +49,9 @@ describe('Swell Customers Tools Integration', () => {
 		mockController.search.mockResolvedValue({
 			content: 'Mocked customer search results',
 		});
+		mockController.update.mockResolvedValue({
+			content: 'Mocked customer update response',
+		});
 
 		// Mock error formatter
 		mockFormatError.mockReturnValue({
@@ -60,10 +63,11 @@ describe('Swell Customers Tools Integration', () => {
 		it('should register all customer tools with correct names and descriptions', () => {
 			swellCustomersTools.registerTools(mockServer);
 
-			expect(mockServer.tool).toHaveBeenCalledTimes(3);
+			expect(mockServer.tool).toHaveBeenCalledTimes(4);
 			expect(registeredTools.has('swell_list_customers')).toBe(true);
 			expect(registeredTools.has('swell_get_customer')).toBe(true);
 			expect(registeredTools.has('swell_search_customers')).toBe(true);
+			expect(registeredTools.has('swell_update_customer')).toBe(true);
 		});
 
 		it('should register tools with proper descriptions', () => {
