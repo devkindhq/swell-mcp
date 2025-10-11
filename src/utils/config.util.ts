@@ -98,10 +98,10 @@ class ConfigLoader {
 			const config = JSON.parse(configContent);
 
 			// Determine the potential keys for the current package
-			const shortKey = 'boilerplate'; // Project-specific short key
-			const fullPackageName = this.packageName; // e.g., '@aashari/boilerplate-mcp-server'
+			const shortKey = 'swell-mcp'; // Project-specific short key
+			const fullPackageName = this.packageName;
 			const unscopedPackageName =
-				fullPackageName.split('/')[1] || fullPackageName; // e.g., 'boilerplate-mcp-server'
+				fullPackageName.split('/')[1] || fullPackageName;
 
 			const potentialKeys = [
 				shortKey,

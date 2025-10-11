@@ -5,13 +5,13 @@ import { VERSION, CLI_NAME } from '../utils/constants.util.js';
 import ipAddressCli from './ipaddress.cli.js';
 
 /**
- * CLI entry point for the Boilerplate MCP Server
+ * CLI entry point for the Swell MCP Server
  * Handles command registration, parsing, and execution
  */
 
 // Package description
 const DESCRIPTION =
-	'A boilerplate Model Context Protocol (MCP) server implementation using TypeScript';
+	'Model Context Protocol (MCP) server for Swell e-commerce platform integration with AI assistants';
 
 /**
  * Run the CLI with the provided arguments
