@@ -11,8 +11,6 @@ import express from 'express';
 import cors from 'cors';
 
 // Import tools and resources
-import ipAddressTools from './tools/ipaddress.tool.js';
-import ipAddressResources from './resources/ipaddress.resource.js';
 import swellProductsTools from './tools/swell.products.tool.js';
 import swellOrdersTools from './tools/swell.orders.tool.js';
 import swellCustomersTools from './tools/swell.customers.tool.js';
@@ -44,7 +42,7 @@ export async function startServer(
 		serverLogger.debug('Debug mode enabled');
 	}
 
-	serverLogger.info(`Initializing Boilerplate MCP server v${VERSION}`);
+	serverLogger.info(`Initializing Swell MCP server v${VERSION}`);
 	serverInstance = new McpServer({
 		name: PACKAGE_NAME,
 		version: VERSION,
@@ -52,8 +50,6 @@ export async function startServer(
 
 	// Register tools and resources
 	serverLogger.info('Registering MCP tools and resources...');
-	ipAddressTools.registerTools(serverInstance);
-	ipAddressResources.registerResources(serverInstance);
 	swellProductsTools.registerTools(serverInstance);
 	swellOrdersTools.registerTools(serverInstance);
 	swellCustomersTools.registerTools(serverInstance);
@@ -114,7 +110,7 @@ export async function startServer(
 
 		// Health check endpoint
 		app.get('/', (_req: Request, res: Response) => {
-			res.send(`Boilerplate MCP Server v${VERSION} is running`);
+			res.send(`Swell MCP Server v${VERSION} is running`);
 		});
 
 		// Start HTTP server

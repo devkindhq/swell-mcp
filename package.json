@@ -34,7 +34,9 @@
 		"model-context-protocol",
 		"swell",
 		"ecommerce",
+		"headless",
 		"typescript",
+		"devkind",
 		"claude",
 		"anthropic",
 		"ai",
@@ -45,7 +47,7 @@
 		"cli",
 		"mcp-server"
 	],
-	"author": "Your Name",
+	"author": "Devkind",
 	"license": "ISC",
 	"engines": {
 		"node": ">=18.0.0"

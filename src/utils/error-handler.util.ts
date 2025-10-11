@@ -114,7 +114,7 @@ export function detectErrorType(
 		return { code: ErrorCode.RATE_LIMIT_ERROR, statusCode: 429 };
 	}
 
-	// ip-api.com specific error detection
+	// API specific error detection
 	if (
 		errorMessage.includes('private range') ||
 		errorMessage.includes('private IP')
@@ -126,7 +126,7 @@ export function detectErrorType(
 		return { code: ErrorCode.RESERVED_RANGE_ERROR, statusCode: 400 };
 	}
 
-	// Check for ip-api.com status="fail" in originalError
+	// Check for API status="fail" in originalError
 	if (
 		error instanceof Error &&
 		'originalError' in error &&

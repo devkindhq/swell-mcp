@@ -2,8 +2,11 @@
 
 A Model Context Protocol server that integrates AI assistants with Swell's e-commerce platform. Built on a production-ready TypeScript foundation, it provides comprehensive access to Swell stores for product management, order processing, and customer management through both CLI and MCP tool interfaces.
 
+**Built by [Devkind](https://devkind.com.au/services/swell)** - Official Swell Partners serving businesses globally with cutting-edge e-commerce solutions.
+
 [![NPM Version](https://img.shields.io/npm/v/swell-mcp)](https://www.npmjs.com/package/swell-mcp)
 [![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg)](https://opensource.org/licenses/ISC)
+[![Built by Devkind](https://img.shields.io/badge/Built%20by-Devkind-blue)](https://devkind.com.au/services/swell)
 
 ## Features
 
@@ -44,16 +47,15 @@ npm run build
 
 # Run in different modes:
 
-# 1. CLI Mode - Execute Swell commands directly
-npm run cli -- list-products
-npm run cli -- get-product <product-id>
-npm run cli -- list-orders --status pending
+# 1. CLI Mode - Execute Swell commands directly (coming soon)
+# npm run cli -- list-products
+# npm run cli -- get-product <product-id>
+# npm run cli -- list-orders --status pending
 
 # 2. STDIO Transport - For AI assistant integration (Claude Desktop, Cursor)
 npm run swell:stdio
 
 # 3. HTTP Transport - For web-based integrations
-npm run swell:http
 npm run mcp:http
 
 # 4. Development with MCP Inspector
@@ -63,11 +65,13 @@ npm run mcp:inspect                         # Auto-opens browser with debugging 
 ## Transport Modes
 
 ### STDIO Transport
+
 - JSON-RPC communication via stdin/stdout
 - Used by Claude Desktop, Cursor AI, and other local AI assistants
 - Run with: `TRANSPORT_MODE=stdio node dist/index.js`
 
 ### Streamable HTTP Transport
+
 - HTTP-based transport with Server-Sent Events (SSE)
 - Supports multiple concurrent connections and web integrations
 - Runs on port 3000 by default (configurable via `PORT` env var)
@@ -83,19 +87,25 @@ npm run mcp:inspect                         # Auto-opens browser with debugging 
 ```
 src/
 ├── cli/                    # Command-line interfaces
-│   ├── index.ts            # CLI entry point with Commander setup
-│   └── ipaddress.cli.ts    # IP address CLI commands
-├── controllers/            # Business logic orchestration  
-│   ├── ipaddress.controller.ts    # IP lookup business logic
-│   └── ipaddress.formatter.ts     # Response formatting
+│   └── index.ts            # CLI entry point with Commander setup
+├── controllers/            # Business logic orchestration
+│   ├── swell.products.controller.ts    # Product management logic
+│   ├── swell.products.formatter.ts     # Product response formatting
+│   ├── swell.orders.controller.ts      # Order management logic
+│   ├── swell.orders.formatter.ts       # Order response formatting
+│   ├── swell.customers.controller.ts   # Customer management logic
+│   └── swell.customers.formatter.ts    # Customer response formatting
 ├── services/               # External API interactions
-│   ├── vendor.ip-api.com.service.ts  # ip-api.com service
-│   └── vendor.ip-api.com.types.ts    # Service type definitions
+│   ├── swell.products.service.ts       # Swell products API service
+│   ├── swell.products.types.ts         # Product type definitions
+│   ├── swell.orders.service.ts         # Swell orders API service
+│   ├── swell.orders.types.ts           # Order type definitions
+│   ├── swell.customers.service.ts      # Swell customers API service
+│   └── swell.customers.types.ts        # Customer type definitions
 ├── tools/                  # MCP tool definitions (AI interface)
-│   ├── ipaddress.tool.ts   # IP lookup tool for AI assistants
-│   └── ipaddress.types.ts  # Tool argument schemas
-├── resources/              # MCP resource definitions
-│   └── ipaddress.resource.ts # IP lookup resource (URI: ip://address)
+│   ├── swell.products.tool.ts          # Product management tools
+│   ├── swell.orders.tool.ts            # Order management tools
+│   └── swell.customers.tool.ts         # Customer management tools
 ├── types/                  # Global type definitions
 │   └── common.types.ts     # Shared interfaces (ControllerResponse, etc.)
 ├── utils/                  # Shared utilities
@@ -105,6 +115,7 @@ src/
 │   ├── config.util.ts      # Environment configuration
 │   ├── constants.util.ts   # Version and package constants
 │   ├── formatter.util.ts   # Markdown formatting
+│   ├── swell-client.util.ts # Swell SDK client wrapper
 │   └── transport.util.ts   # HTTP transport utilities
 └── index.ts                # Server entry point (dual transport)
 ```
@@ -113,51 +124,51 @@ src/
 
 ## 5-Layer Architecture
 
-The boilerplate follows a clean, layered architecture that promotes maintainability and clear separation of concerns:
+The server follows a clean, layered architecture that promotes maintainability and clear separation of concerns:
 
 ### 1. CLI Layer (`src/cli/`)
 
 - **Purpose**: Command-line interfaces for direct tool usage and testing
 - **Implementation**: Commander-based argument parsing with contextual error handling
-- **Example**: `get-ip-details [ipAddress] --include-extended-data --no-use-https`
+- **Example**: `list-products --active --category electronics`
 - **Pattern**: Register commands → Parse arguments → Call controllers → Handle errors
 
 ### 2. Tools Layer (`src/tools/`)
 
 - **Purpose**: MCP tool definitions that AI assistants can invoke
 - **Implementation**: Zod schema validation with structured responses
-- **Example**: `ip_get_details` tool with optional IP address and configuration options
+- **Example**: `swell_list_products` tool with filtering and pagination options
 - **Pattern**: Define schema → Validate args → Call controller → Format MCP response
 
 ### 3. Resources Layer (`src/resources/`)
 
-- **Purpose**: MCP resources providing contextual data accessible via URIs
+- **Purpose**: MCP resources providing contextual data accessible via URIs (planned feature)
 - **Implementation**: Resource handlers that respond to URI-based requests
-- **Example**: `ip://8.8.8.8` resource providing IP geolocation data
+- **Example**: `swell://products/123` resource providing product details
 - **Pattern**: Register URI patterns → Parse requests → Return formatted content
 
 ### 4. Controllers Layer (`src/controllers/`)
 
 - **Purpose**: Business logic orchestration with comprehensive error handling
 - **Implementation**: Options validation, fallback logic, response formatting
-- **Example**: IP lookup with HTTPS fallback, test environment detection, API token validation
+- **Example**: Product management with inventory tracking, order processing with status updates
 - **Pattern**: Validate inputs → Apply defaults → Call services → Format responses
 
 ### 5. Services Layer (`src/services/`)
 
 - **Purpose**: Direct external API interactions with minimal business logic
 - **Implementation**: HTTP transport utilities with structured error handling
-- **Example**: ip-api.com API calls with authentication and field selection
+- **Example**: Swell API calls with authentication and data validation
 - **Pattern**: Build requests → Make API calls → Validate responses → Return raw data
 
 ### 6. Utils Layer (`src/utils/`)
 
 - **Purpose**: Shared functionality across all layers
-- **Key Components**: 
-  - `logger.util.ts`: Contextual logging (file:method context)
-  - `error.util.ts`: MCP-specific error formatting
-  - `transport.util.ts`: HTTP/API utilities with retry logic
-  - `config.util.ts`: Environment configuration management
+- **Key Components**:
+    - `logger.util.ts`: Contextual logging (file:method context)
+    - `error.util.ts`: MCP-specific error formatting
+    - `transport.util.ts`: HTTP/API utilities with retry logic
+    - `config.util.ts`: Environment configuration management
 
 ## Developer Guide
 
@@ -169,10 +180,10 @@ npm run build               # Build TypeScript to dist/
 npm run clean               # Remove dist/ and coverage/
 npm run prepare             # Build + ensure executable permissions (for npm publish)
 
-# CLI Testing
-npm run cli -- get-ip-details 8.8.8.8                    # Test specific IP
-npm run cli -- get-ip-details --include-extended-data    # Test with extended data
-npm run cli -- get-ip-details --no-use-https             # Test with HTTP
+# CLI Testing (coming soon)
+# npm run cli -- list-products --active                   # List active products
+# npm run cli -- get-product <product-id>                 # Get product details
+# npm run cli -- list-orders --status pending             # List pending orders
 
 # MCP Server Modes
 npm run mcp:stdio           # STDIO transport for AI assistants
@@ -197,30 +208,35 @@ npm run update:deps         # Update dependencies
 ### Environment Variables
 
 #### Core Configuration
-- `TRANSPORT_MODE`: Transport mode (`stdio` | `http`, default: `stdio`)  
+
+- `TRANSPORT_MODE`: Transport mode (`stdio` | `http`, default: `stdio`)
 - `PORT`: HTTP server port (default: `3000`)
 - `DEBUG`: Enable debug logging (`true` | `false`, default: `false`)
 
-#### IP API Configuration  
-- `IPAPI_API_TOKEN`: API token for ip-api.com extended data (optional, free tier available)
+#### Swell API Configuration
+
+- `SWELL_STORE_ID`: Your Swell store ID (required)
+- `SWELL_SECRET_KEY`: Your Swell secret key (required)
 
 #### Example `.env` File
+
 ```bash
 # Basic configuration
 TRANSPORT_MODE=http
 PORT=3001
 DEBUG=true
 
-# Extended data (requires ip-api.com account)
-IPAPI_API_TOKEN=your_token_here
+# Swell API credentials (required)
+SWELL_STORE_ID=your-store-id
+SWELL_SECRET_KEY=your-secret-key
 ```
 
 ### Debugging Tools
 
 - **MCP Inspector**: Visual tool for testing your MCP tools
-  - Run server with `npm run mcp:inspect`
-  - Open the URL shown in terminal
-  - Test your tools interactively
+    - Run server with `npm run mcp:inspect`
+    - Open the URL shown in terminal
+    - Test your tools interactively
 
 - **Debug Logging**: Enable with `DEBUG=true` environment variable
 
@@ -231,301 +247,76 @@ Create `~/.mcp/configs.json`:
 
 ```json
 {
-  "boilerplate": {
-    "environments": {
-      "DEBUG": "true",
-      "TRANSPORT_MODE": "http",
-      "PORT": "3000"
-    }
-  }
-}
-```
-
-</details>
-
-## Building Custom Tools
-
-<details>
-<summary><b>Step-by-Step Tool Implementation Guide (Click to expand)</b></summary>
-
-### 1. Define Service Layer
-
-Create a new service in `src/services/` following the vendor-specific naming pattern:
-
-```typescript
-// src/services/vendor.example-api.service.ts
-import { Logger } from '../utils/logger.util.js';
-import { fetchApi } from '../utils/transport.util.js';
-import { ExampleApiResponse, ExampleApiRequestOptions } from './vendor.example-api.types.js';
-import { createApiError, McpError } from '../utils/error.util.js';
-
-const serviceLogger = Logger.forContext('services/vendor.example-api.service.ts');
-
-async function get(
-	param?: string,
-	options: ExampleApiRequestOptions = {}
-): Promise<ExampleApiResponse> {
-	const methodLogger = serviceLogger.forMethod('get');
-	methodLogger.debug(`Calling Example API with param: ${param}`);
-
-	try {
-		const url = `https://api.example.com/${param || 'default'}`;
-		const rawData = await fetchApi<ExampleApiResponse>(url, {
-			headers: options.apiKey ? { 'Authorization': `Bearer ${options.apiKey}` } : {}
-		});
-
-		methodLogger.debug('Received successful response from Example API');
-		return rawData;
-	} catch (error) {
-		methodLogger.error('Service error fetching data', error);
-		
-		if (error instanceof McpError) {
-			throw error;
+	"swell-mcp": {
+		"environments": {
+			"DEBUG": "true",
+			"TRANSPORT_MODE": "http",
+			"PORT": "3000",
+			"SWELL_STORE_ID": "your-store-id",
+			"SWELL_SECRET_KEY": "your-secret-key"
 		}
-		
-		throw createApiError(
-			'Unexpected service error while fetching data',
-			undefined,
-			error
-		);
 	}
 }
-
-export default { get };
-```
-
-### 2. Create Controller
-
-Add a controller in `src/controllers/` to handle business logic with error context:
-
-```typescript
-// src/controllers/example.controller.ts
-import { Logger } from '../utils/logger.util.js';
-import exampleService from '../services/vendor.example-api.service.js';
-import { formatExample } from './example.formatter.js';
-import { handleControllerError, buildErrorContext } from '../utils/error-handler.util.js';
-import { ControllerResponse } from '../types/common.types.js';
-import { config } from '../utils/config.util.js';
-
-const logger = Logger.forContext('controllers/example.controller.ts');
-
-export interface GetDataOptions {
-	param?: string;
-	includeMetadata?: boolean;
-}
-
-async function getData(
-	options: GetDataOptions = {}
-): Promise<ControllerResponse> {
-	const methodLogger = logger.forMethod('getData');
-	methodLogger.debug(`Getting data for param: ${options.param || 'default'}`, options);
-
-	try {
-		// Apply business logic and defaults
-		const apiKey = config.get('EXAMPLE_API_TOKEN');
-		
-		// Call service layer
-		const data = await exampleService.get(options.param, {
-			apiKey,
-			includeMetadata: options.includeMetadata ?? false
-		});
-		
-		// Format response
-		const formattedContent = formatExample(data);
-		return { content: formattedContent };
-		
-	} catch (error) {
-		throw handleControllerError(
-			error,
-			buildErrorContext(
-				'ExampleData',
-				'getData',
-				'controllers/example.controller.ts@getData',
-				options.param || 'default',
-				{ options }
-			)
-		);
-	}
-}
-
-export default { getData };
-```
-
-### 3. Implement MCP Tool
-
-Create a tool definition in `src/tools/` following the registration pattern:
-
-```typescript
-// src/tools/example.tool.ts
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { z } from 'zod';
-import { Logger } from '../utils/logger.util.js';
-import { formatErrorForMcpTool } from '../utils/error.util.js';
-import exampleController from '../controllers/example.controller.js';
-
-const logger = Logger.forContext('tools/example.tool.ts');
-
-// Define Zod schema for tool arguments
-const GetDataSchema = z.object({
-	param: z.string().optional().describe('Optional parameter for the API call'),
-	includeMetadata: z.boolean().optional().default(false)
-		.describe('Whether to include additional metadata in the response')
-});
-
-async function handleGetData(args: Record<string, unknown>) {
-	const methodLogger = logger.forMethod('handleGetData');
-	
-	try {
-		methodLogger.debug('Tool example_get_data called', args);
-
-		// Validate arguments with Zod
-		const validatedArgs = GetDataSchema.parse(args);
-
-		// Call controller
-		const result = await exampleController.getData({
-			param: validatedArgs.param,
-			includeMetadata: validatedArgs.includeMetadata
-		});
-
-		// Return MCP-formatted response
-		return {
-			content: [
-				{
-					type: 'text' as const,
-					text: result.content
-				}
-			]
-		};
-	} catch (error) {
-		methodLogger.error('Tool example_get_data failed', error);
-		return formatErrorForMcpTool(error);
-	}
-}
-
-// Registration function following the pattern used by existing tools
-function registerTools(server: McpServer) {
-	const registerLogger = logger.forMethod('registerTools');
-	registerLogger.debug('Registering example tools...');
-
-	server.tool(
-		'example_get_data',
-		`Gets data from the Example API with optional parameter.
-Use this tool to fetch example data. Returns formatted data as Markdown.`,
-		GetDataSchema.shape,
-		handleGetData
-	);
-
-	registerLogger.debug('Example tools registered successfully');
-}
-
-export default { registerTools };
-```
-
-### 4. Add CLI Support
-
-Create a CLI command in `src/cli/` following the Commander pattern:
-
-```typescript
-// src/cli/example.cli.ts
-import { Command } from 'commander';
-import { Logger } from '../utils/logger.util.js';
-import exampleController from '../controllers/example.controller.js';
-import { handleCliError } from '../utils/error.util.js';
-
-const logger = Logger.forContext('cli/example.cli.ts');
-
-function register(program: Command) {
-	const methodLogger = logger.forMethod('register');
-	methodLogger.debug('Registering example CLI commands...');
-
-	program
-		.command('get-data')
-		.description('Gets data from the Example API')
-		.argument('[param]', 'Optional parameter for the API call')
-		.option('-m, --include-metadata', 'Include additional metadata in response')
-		.action(async (param, options) => {
-			const actionLogger = logger.forMethod('action:get-data');
-			
-			try {
-				actionLogger.debug('CLI get-data called', { param, options });
-
-				const result = await exampleController.getData({
-					param,
-					includeMetadata: options.includeMetadata || false
-				});
-
-				console.log(result.content);
-			} catch (error) {
-				handleCliError(error);
-			}
-		});
-
-	methodLogger.debug('Example CLI commands registered successfully');
-}
-
-export default { register };
-```
-
-### 5. Register Components
-
-Update the entry points to register your new components:
-
-```typescript
-// 1. Register CLI in src/cli/index.ts
-import exampleCli from './example.cli.js';
-
-export async function runCli(args: string[]) {
-	// ... existing setup code ...
-	
-	// Register CLI commands
-	exampleCli.register(program);  // Add this line
-	
-	// ... rest of function
-}
-
-// 2. Register Tools in src/index.ts
-import exampleTools from './tools/example.tool.js';
-
-// In the startServer function, after existing registrations:
-exampleTools.registerTools(serverInstance);
 ```
 
 </details>
 
-## IP Address Example Implementation
+## Extending the Server
 
-The boilerplate includes a complete IP address geolocation example demonstrating all layers:
+This server is built with a modular architecture that makes it easy to add new Swell API integrations or custom business logic. The existing Swell tools (products, orders, customers) serve as examples for implementing additional functionality.
+
+For detailed implementation patterns, see the existing controllers, services, and tools in the codebase.
+
+### Need Advanced Swell Checkout?
+
+This MCP server demonstrates the kind of sophisticated Swell integrations that power **[CheckoutJet](https://checkoutjet.com/)** - an enterprise-grade checkout solution for Swell stores built by [Devkind](https://devkind.com.au/services/swell).
+
+**CheckoutJet** transforms your Swell checkout with:
+
+- **🏢 B2B Excellence** - Professional invoicing, Net 30 payments, and wholesale pricing
+- **📦 Smart Shipping** - Live rates from multiple locations with intelligent order routing
+- **⚡ Split Deliveries** - Handle complex multi-vendor and multi-warehouse fulfillment
+- **🎨 Full Customization** - Pixel-perfect, on-brand checkout experience
+- **🤖 Automation** - Automated invoicing, POs, and order management
+- **💰 Advanced Pricing** - Dynamic discounts and tiered pricing logic
+
+**Proven Results:** Over €500,000 processed for Swell merchants with 23% conversion rate improvements.
+
+**Ready to upgrade your Swell checkout?** [Book a 15-minute demo](https://checkoutjet.com/) of CheckoutJet.
+
+## Swell E-commerce Integration
+
+This MCP server provides comprehensive integration with Swell's e-commerce platform:
 
 ### Available Tools & Commands
 
-**CLI Commands:**
-```bash
-npm run cli -- get-ip-details                           # Get current public IP
-npm run cli -- get-ip-details 8.8.8.8                  # Get details for specific IP
-npm run cli -- get-ip-details 1.1.1.1 --include-extended-data   # With extended data
-npm run cli -- get-ip-details 8.8.8.8 --no-use-https   # Force HTTP (for free tier)
-```
-
 **MCP Tools:**
-- `ip_get_details` - IP geolocation lookup for AI assistants
 
-**MCP Resources:**
-- `ip://` - Current IP details  
-- `ip://8.8.8.8` - Specific IP details
+- `swell_list_products` - List products with filtering and pagination
+- `swell_get_product` - Get detailed product information
+- `swell_search_products` - Search products with multiple criteria
+- `swell_check_inventory` - Check product inventory levels
+- `swell_list_orders` - List orders with filtering options
+- `swell_get_order` - Get detailed order information
+- `swell_update_order_status` - Update order status
+- `swell_list_customers` - List customers with search capabilities
+- `swell_get_customer` - Get detailed customer information
+- `swell_search_customers` - Search customers with multiple criteria
 
 ### Features Demonstrated
 
-- **Fallback Logic**: HTTPS → HTTP fallback for free tier users
-- **Environment Detection**: Different behavior in test vs production
-- **API Token Support**: Optional token for extended data (ASN, mobile detection, etc.)
-- **Error Handling**: Structured errors for private/reserved IP addresses
-- **Response Formatting**: Clean Markdown output with geolocation data
+- **Product Management**: Complete product catalog access with inventory tracking
+- **Order Processing**: Order lifecycle management with status updates
+- **Customer Management**: Customer profiles with order history and analytics
+- **Error Handling**: Structured errors for API failures and validation issues
+- **Response Formatting**: Clean Markdown output with structured data tables
 
-### Configuration Options
+### Configuration Requirements
 
 ```bash
-# Optional - for extended data features
-IPAPI_API_TOKEN=your_token_from_ip-api.com
+# Required - Swell API credentials
+SWELL_STORE_ID=your-store-id
+SWELL_SECRET_KEY=your-secret-key
 
 # Development
 DEBUG=true                    # Enable detailed logging
@@ -533,39 +324,73 @@ TRANSPORT_MODE=http          # Use HTTP transport
 PORT=3001                    # Custom port
 ```
 
-## Publishing Your MCP Server
+## Installation & Usage
 
-1. **Customize Package Details:**
-   ```json
-   {
-     "name": "your-mcp-server-name",
-     "version": "1.0.0", 
-     "description": "Your custom MCP server",
-     "author": "Your Name",
-     "keywords": ["mcp", "your-domain", "ai-integration"]
-   }
-   ```
+### NPM Installation
 
-2. **Update Documentation:** Replace IP address examples with your use case
-3. **Test Thoroughly:**
-   ```bash
-   npm run build && npm test
-   npm run cli -- your-command
-   npm run mcp:stdio    # Test with MCP Inspector
-   ```
-4. **Publish:** `npm publish` (requires npm login)
+```bash
+npm install -g swell-mcp
+```
+
+### From Source
+
+```bash
+git clone https://github.com/devkindhq/swell-mcp.git
+cd swell-mcp
+npm install
+npm run build
+```
+
+### Configuration
+
+Set your Swell credentials:
+
+```bash
+export SWELL_STORE_ID=your-store-id
+export SWELL_SECRET_KEY=your-secret-key
+```
+
+---
+
+## 🚀 Take Your Swell Store Further
+
+Impressed by this MCP server's capabilities? This is just a glimpse of what's possible with expert Swell development.
+
+### � **CheckoutJet - Enterprise Swell Checkout**
+
+Transform your Swell store with our battle-tested checkout solution:
+
+- **B2B Powerhouse** - Professional invoicing, Net 30 payments, wholesale pricing
+- **Smart Shipping** - Live rates from multiple locations with intelligent routing
+- **Split Deliveries** - Complex multi-vendor and multi-warehouse fulfillment
+- **Full Customization** - Pixel-perfect, on-brand checkout experience
+- **Proven Results** - €500,000+ processed, 23% conversion improvements
+
+[**See CheckoutJet in Action →**](https://checkoutjet.com/)
+
+### 🤖 **AI & Custom Development**
+
+- AI-powered integrations like this MCP server
+- Custom Swell applications and themes
+- Headless commerce implementations
+- Performance optimization and automation
+
+**Ready to transform your e-commerce business?**
+
+[![See CheckoutJet Demo](https://img.shields.io/badge/See%20CheckoutJet%20Demo-15%20Minutes-brightgreen?style=for-the-badge)](https://checkoutjet.com/)
 
 ## Testing Strategy
 
-The boilerplate includes comprehensive testing infrastructure:
+The server includes comprehensive testing infrastructure:
 
 ### Test Structure
+
 ```
 tests/               # Not present - tests are in src/
 src/
 ├── **/*.test.ts     # Co-located with source files
 ├── utils/           # Utility function tests
-├── controllers/     # Business logic tests  
+├── controllers/     # Business logic tests
 ├── services/        # API integration tests
 └── cli/             # CLI command tests
 ```
@@ -582,11 +407,12 @@ src/
 
 ```bash
 npm test                    # Run all tests
-npm run test:coverage       # Generate coverage report  
+npm run test:coverage       # Generate coverage report
 npm run test:cli           # CLI-specific tests only
 ```
 
 ### Coverage Goals
+
 - Target: >80% test coverage
 - Focus on business logic (controllers) and utilities
 - Mock external services appropriately
@@ -598,15 +424,28 @@ npm run test:cli           # CLI-specific tests only
 ## Resources & Documentation
 
 ### MCP Protocol Resources
+
 - [MCP Specification](https://modelcontextprotocol.io/specification/2025-06-18)
 - [MCP SDK Documentation](https://github.com/modelcontextprotocol/sdk)
 - [MCP Inspector](https://github.com/modelcontextprotocol/inspector) - Visual debugging tool
 
 ### Implementation References
+
 - [Anthropic MCP Announcement](https://www.anthropic.com/news/model-context-protocol)
 - [Awesome MCP Servers](https://github.com/wong2/awesome-mcp-servers) - Community examples
 - [TypeScript Documentation](https://www.typescriptlang.org/docs/)
 
-### Your MCP Server Ecosystem
-- [All @aashari MCP Servers](https://www.npmjs.com/~aashari) - NPM packages
-- [GitHub Repositories](https://github.com/aashari?tab=repositories&q=mcp-server) - Source code
+### Swell Resources
+
+- [Swell Documentation](https://developers.swell.is/) - Official API documentation
+- [Swell Node SDK](https://github.com/swellstores/swell-node) - The underlying SDK used by this server
+
+### Professional Swell Services
+
+**Looking for expert Swell development?** [Devkind](https://devkind.com.au/services/swell) is an official Swell partner serving businesses globally with our remote team, specializing in:
+
+- **[CheckoutJet](https://checkoutjet.com/)** - Enterprise checkout solution with B2B, shipping automation, and split deliveries
+- **[Swell Development Services](https://devkind.com.au/services/swell)** - Custom apps, themes, and integrations
+- **[Headless E-commerce](https://devkind.com.au/services/headless-ecommerce)** - API-driven storefronts and experiences
+
+**Get Started:** [See CheckoutJet Demo](https://checkoutjet.com/) | [Book FREE consultation](https://devkind.com.au/services/swell) | Email: [hello@devkind.com.au](mailto:hello@devkind.com.au) | **Global Remote Team**

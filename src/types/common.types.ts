@@ -19,3 +19,41 @@ export interface ControllerResponse {
 	 */
 	content: string;
 }
+
+/**
+ * Error types for update operations
+ */
+export type UpdateErrorType =
+	| 'validation'
+	| 'conflict'
+	| 'not_found'
+	| 'api_error';
+
+/**
+ * Update error details
+ */
+export interface UpdateError {
+	type: UpdateErrorType;
+	field?: string;
+	message: string;
+	code?: string;
+}
+
+/**
+ * Change tracking for updates
+ */
+export interface UpdateChange {
+	field: string;
+	oldValue: unknown;
+	newValue: unknown;
+}
+
+/**
+ * Result of update operations
+ */
+export interface UpdateResult<T> {
+	success: boolean;
+	data?: T;
+	errors?: UpdateError[];
+	changes?: UpdateChange[];
+}

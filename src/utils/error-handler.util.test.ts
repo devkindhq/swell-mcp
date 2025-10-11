@@ -38,7 +38,7 @@ describe('error-handler.util', () => {
 			});
 		});
 
-		it('should detect ip-api.com specific errors from message', () => {
+		it('should detect API specific errors from message', () => {
 			const privateIpError = new Error('private range IP address');
 			const { code: privateCode, statusCode: privateStatus } =
 				detectErrorType(privateIpError);
@@ -52,7 +52,7 @@ describe('error-handler.util', () => {
 			expect(reservedStatus).toBe(400);
 		});
 
-		it('should detect ip-api.com specific errors from originalError', () => {
+		it('should detect API specific errors from originalError', () => {
 			// Test with an McpError that has originalError with status='fail' and private message
 			const privateApiError = createApiError('API error', 400, {
 				status: 'fail',
