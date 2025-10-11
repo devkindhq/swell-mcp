@@ -23,43 +23,199 @@ A Model Context Protocol server that integrates AI assistants with Swell's e-com
 
 Model Context Protocol (MCP) is an open standard for securely connecting AI systems to external tools and data sources. This server implements the MCP specification to provide AI assistants with comprehensive access to Swell's e-commerce platform, enabling intelligent store management and customer service automation.
 
-## Prerequisites
+## Getting Started
 
-- **Node.js** (>=18.x): [Download](https://nodejs.org/)
-- **Git**: For version control
+First, install the Swell MCP server with your AI assistant or MCP client.
 
-## Quick Start
+### Requirements
+
+- Node.js 18 or newer
+- VS Code, Cursor, Windsurf, Claude Desktop, or any other MCP client
+- Swell store credentials (Store ID and Secret Key)
+
+**Standard config** works in most MCP clients:
+
+```json
+{
+	"mcpServers": {
+		"swell-mcp": {
+			"command": "npx",
+			"args": ["swell-mcp"],
+			"env": {
+				"DEBUG": "false",
+				"SWELL_STORE_ID": "your_store_id",
+				"SWELL_SECRET_KEY": "your_private_token"
+			},
+			"disabled": false
+		}
+	}
+}
+```
+
+<details>
+<summary>Claude Desktop</summary>
+
+Follow the MCP install [guide](https://modelcontextprotocol.io/quickstart/user), use the standard config above.
+
+Add to your `claude_desktop_config.json`:
+
+```json
+{
+	"mcpServers": {
+		"swell-mcp": {
+			"command": "npx",
+			"args": ["swell-mcp"],
+			"env": {
+				"SWELL_STORE_ID": "your_store_id",
+				"SWELL_SECRET_KEY": "your_private_token"
+			}
+		}
+	}
+}
+```
+
+</details>
+
+<details>
+<summary>Cursor</summary>
+
+#### Click the button to install:
+
+[<img src="https://cursor.com/deeplink/mcp-install-dark.svg" alt="Install in Cursor">](https://cursor.com/en/install-mcp?name=Swell%20MCP&config=eyJjb21tYW5kIjoibnB4IiwiYXJncyI6WyJzd2VsbC1tY3AiXSwiZW52Ijp7IlNXRUxMX1NUT1JFX0lEIjoieW91cl9zdG9yZV9pZCIsIlNXRUxMX1NFQ1JFVF9LRVkiOiJ5b3VyX3ByaXZhdGVfdG9rZW4ifX0%3D)
+
+#### Or install manually:
+
+Go to `Cursor Settings` -> `MCP` -> `Add new MCP Server`. Name it "Swell MCP", use `command` type with the command `npx swell-mcp`. Add your Swell credentials in the environment variables section.
+
+</details>
+
+<details>
+<summary>VS Code</summary>
+
+Follow the MCP install [guide](https://code.visualstudio.com/docs/copilot/chat/mcp-servers#_add-an-mcp-server), use the standard config above. You can also install the Swell MCP server using the VS Code CLI:
 
 ```bash
-# Clone the repository
-git clone https://github.com/devkindhq/swell-mcp.git
-cd swell-mcp
+# For VS Code
+code --add-mcp '{"name":"swell-mcp","command":"npx","args":["swell-mcp"],"env":{"SWELL_STORE_ID":"your_store_id","SWELL_SECRET_KEY":"your_private_token"}}'
+```
 
-# Install dependencies
-npm install
+After installation, the Swell MCP server will be available for use with your GitHub Copilot agent in VS Code.
 
-# Configure your Swell credentials
-cp .env.example .env
-# Edit .env and add your SWELL_STORE_ID and SWELL_SECRET_KEY
+</details>
 
-# Build the project
-npm run build
+<details>
+<summary>Windsurf</summary>
 
-# Run in different modes:
+Follow Windsurf MCP [documentation](https://docs.windsurf.com/windsurf/cascade/mcp). Use the standard config above.
 
-# 1. CLI Mode - Execute Swell commands directly (coming soon)
-# npm run cli -- list-products
-# npm run cli -- get-product <product-id>
-# npm run cli -- list-orders --status pending
+Add to your MCP configuration:
 
-# 2. STDIO Transport - For AI assistant integration (Claude Desktop, Cursor)
-npm run swell:stdio
+```json
+{
+	"mcpServers": {
+		"swell-mcp": {
+			"command": "npx",
+			"args": ["swell-mcp"],
+			"env": {
+				"SWELL_STORE_ID": "your_store_id",
+				"SWELL_SECRET_KEY": "your_private_token"
+			}
+		}
+	}
+}
+```
 
-# 3. HTTP Transport - For web-based integrations
-npm run mcp:http
+</details>
 
-# 4. Development with MCP Inspector
-npm run mcp:inspect                         # Auto-opens browser with debugging UI
+<details>
+<summary>Goose</summary>
+
+Go to `Advanced settings` -> `Extensions` -> `Add custom extension`. Name it "Swell MCP", use type `STDIO`, and set the `command` to `npx swell-mcp`. Add your Swell credentials as environment variables. Click "Add Extension".
+
+</details>
+
+<details>
+<summary>LM Studio</summary>
+
+Go to `Program` in the right sidebar -> `Install` -> `Edit mcp.json`. Use the standard config above with your Swell credentials.
+
+</details>
+
+<details>
+<summary>Warp</summary>
+
+Go to `Settings` -> `AI` -> `Manage MCP Servers` -> `+ Add` to [add an MCP Server](https://docs.warp.dev/knowledge-and-collaboration/mcp#adding-an-mcp-server). Use the standard config above.
+
+Alternatively, use the slash command `/add-mcp` in the Warp prompt and paste the standard config from above.
+
+</details>
+
+### Configuration
+
+#### Getting Your Swell Credentials
+
+1. **Log into your Swell dashboard** at [login.swell.store](https://login.swell.store/admin/)
+2. **Navigate to Developer → API Keys**
+3. **Copy your Store ID** (this is your `SWELL_STORE_ID`)
+4. **Copy your Secret Key** (this is your `SWELL_SECRET_KEY` - use the backend/admin key, not the public key)
+
+#### Environment Variables
+
+- `SWELL_STORE_ID`: Your Swell store identifier (required)
+- `SWELL_SECRET_KEY`: Your Swell secret/private key (required)
+- `DEBUG`: Set to "true" to enable debug mode with raw JSON responses (optional)
+
+#### Example Configuration
+
+```json
+{
+	"mcpServers": {
+		"swell-mcp": {
+			"command": "npx",
+			"args": ["swell-mcp"],
+			"env": {
+				"DEBUG": "false",
+				"SWELL_STORE_ID": "my-awesome-store",
+				"SWELL_SECRET_KEY": "sk_live_abc123def456..."
+			},
+			"disabled": false
+		}
+	}
+}
+```
+
+## Usage
+
+Once installed in your MCP client (see [Getting Started](#getting-started) above), you can use the Swell MCP tools directly through your AI assistant:
+
+### Example Interactions
+
+```
+"List my active products"
+→ Uses swell_list_products with active=true
+
+"Show me pending orders from this week"
+→ Uses swell_list_orders with status=pending and date filtering
+
+"Update customer John Doe's email to john@example.com"
+→ Uses swell_update_customer to modify customer information
+
+"Check inventory for product ID abc123"
+→ Uses swell_check_inventory for stock levels
+```
+
+### Debug Mode
+
+Enable debug mode to see raw JSON responses instead of formatted output:
+
+```json
+{
+	"env": {
+		"DEBUG": "true",
+		"SWELL_STORE_ID": "your_store_id",
+		"SWELL_SECRET_KEY": "your_private_token"
+	}
+}
 ```
 
 ## Transport Modes
@@ -170,7 +326,43 @@ The server follows a clean, layered architecture that promotes maintainability a
     - `transport.util.ts`: HTTP/API utilities with retry logic
     - `config.util.ts`: Environment configuration management
 
-## Developer Guide
+## Development Setup
+
+**For developers who want to contribute or modify the server:**
+
+### Prerequisites
+
+- **Node.js** (>=18.x): [Download](https://nodejs.org/)
+- **Git**: For version control
+
+### Quick Start
+
+```bash
+# Clone the repository
+git clone https://github.com/devkindhq/swell-mcp.git
+cd swell-mcp
+
+# Install dependencies
+npm install
+
+# Configure your Swell credentials
+cp .env.example .env
+# Edit .env and add your SWELL_STORE_ID and SWELL_SECRET_KEY
+
+# Build the project
+npm run build
+
+# Run in different modes:
+
+# 1. STDIO Transport - For AI assistant integration (Claude Desktop, Cursor)
+npm run mcp:stdio
+
+# 2. HTTP Transport - For web-based integrations
+npm run mcp:http
+
+# 3. Development with MCP Inspector
+npm run mcp:inspect                         # Auto-opens browser with debugging UI
+```
 
 ### Development Scripts
 
@@ -261,6 +453,127 @@ Create `~/.mcp/configs.json`:
 
 </details>
 
+## Available Tools
+
+The Swell MCP server provides comprehensive e-commerce management tools for AI assistants:
+
+<details>
+<summary><b>Product Management</b></summary>
+
+- **swell_list_products**
+    - Description: List products from your Swell store with filtering and pagination options
+    - Parameters:
+        - `page` (number, optional): Page number for pagination (default: 1)
+        - `limit` (number, optional): Number of products per page (max: 100, default: 20)
+        - `active` (boolean, optional): Filter by active status
+        - `category` (string, optional): Filter by category slug or ID
+        - `tags` (array, optional): Filter by product tags
+        - `sort` (string, optional): Sort order (e.g., "date_created_desc", "name_asc", "price_asc")
+        - `expand` (array, optional): Fields to expand (e.g., ["variants", "categories", "images"])
+
+- **swell_get_product**
+    - Description: Get detailed information for a specific product
+    - Parameters:
+        - `productId` (string): The ID of the product to retrieve
+        - `expand` (array, optional): Fields to expand (default: ["variants", "categories", "images"])
+
+- **swell_search_products**
+    - Description: Search for products using text queries with optional filtering
+    - Parameters:
+        - `query` (string): Search query to find products
+        - `page` (number, optional): Page number for pagination (default: 1)
+        - `limit` (number, optional): Number of products per page (max: 100, default: 20)
+        - `active` (boolean, optional): Filter by active status
+        - `category` (string, optional): Filter by category slug or ID
+        - `tags` (array, optional): Filter by product tags
+        - `sort` (string, optional): Sort order (default: "relevance")
+
+- **swell_check_inventory**
+    - Description: Check current inventory levels and stock status for a product
+    - Parameters:
+        - `productId` (string): The ID of the product to check inventory for
+        - `includeVariants` (boolean, optional): Whether to include variant inventory (default: true)
+
+- **swell_update_customer**
+    - Description: Update customer information in your Swell store
+    - Parameters:
+        - `customerId` (string): The ID of the customer to update
+        - `firstName` (string, optional): Customer's first name
+        - `lastName` (string, optional): Customer's last name
+        - `email` (string, optional): Customer's email address
+        - `phone` (string, optional): Customer's phone number
+        - `notes` (string, optional): Customer notes
+        - `tags` (array, optional): Customer tags
+        - `groupId` (string, optional): Customer group ID
+        - `emailOptin` (boolean, optional): Email marketing opt-in status
+        - `smsOptin` (boolean, optional): SMS marketing opt-in status
+
+</details>
+
+<details>
+<summary><b>Order Management</b></summary>
+
+- **swell_list_orders**
+    - Description: List orders from your Swell store with filtering options
+    - Parameters:
+        - `page` (number, optional): Page number for pagination (default: 1)
+        - `limit` (number, optional): Number of orders per page (max: 100, default: 20)
+        - `status` (string, optional): Filter by order status ("pending", "payment_pending", "delivery_pending", "complete", "canceled")
+        - `customerId` (string, optional): Filter by customer ID
+        - `dateFrom` (string, optional): Filter orders from this date (ISO format: YYYY-MM-DD)
+        - `dateTo` (string, optional): Filter orders to this date (ISO format: YYYY-MM-DD)
+        - `sort` (string, optional): Sort order (default: "date_created_desc")
+        - `expand` (array, optional): Fields to expand (e.g., ["items", "account", "billing", "shipping"])
+
+- **swell_get_order**
+    - Description: Get detailed information for a specific order
+    - Parameters:
+        - `orderId` (string): The ID of the order to retrieve
+        - `expand` (array, optional): Fields to expand (default: ["items", "account", "billing", "shipping"])
+
+- **swell_update_order_status**
+    - Description: Update the status of an order
+    - Parameters:
+        - `orderId` (string): The ID of the order to update
+        - `status` (string): New status ("pending", "payment_pending", "delivery_pending", "complete", "canceled")
+        - `notes` (string, optional): Optional notes about the status change
+
+</details>
+
+<details>
+<summary><b>Customer Management</b></summary>
+
+- **swell_list_customers**
+    - Description: List customers from your Swell store with search and filtering options
+    - Parameters:
+        - `page` (number, optional): Page number for pagination (default: 1)
+        - `limit` (number, optional): Number of customers per page (max: 100, default: 20)
+        - `search` (string, optional): Search customers by name or email
+        - `email` (string, optional): Filter by specific email address
+        - `dateFrom` (string, optional): Filter customers created from this date (ISO format: YYYY-MM-DD)
+        - `dateTo` (string, optional): Filter customers created to this date (ISO format: YYYY-MM-DD)
+        - `sort` (string, optional): Sort order (default: "date_created_desc")
+        - `expand` (array, optional): Fields to expand (e.g., ["orders", "addresses"])
+
+- **swell_get_customer**
+    - Description: Get detailed information for a specific customer
+    - Parameters:
+        - `customerId` (string): The ID of the customer to retrieve
+        - `expand` (array, optional): Fields to expand (default: ["orders", "addresses"])
+        - `includeOrderHistory` (boolean, optional): Whether to include order history (default: true)
+
+- **swell_search_customers**
+    - Description: Search for customers using text queries
+    - Parameters:
+        - `query` (string): Search query to find customers (searches name, email, phone)
+        - `page` (number, optional): Page number for pagination (default: 1)
+        - `limit` (number, optional): Number of customers per page (max: 100, default: 20)
+        - `dateFrom` (string, optional): Filter customers created from this date
+        - `dateTo` (string, optional): Filter customers created to this date
+        - `sort` (string, optional): Sort order (default: "relevance")
+
+</details>
+
 ## Extending the Server
 
 This server is built with a modular architecture that makes it easy to add new Swell API integrations or custom business logic. The existing Swell tools (products, orders, customers) serve as examples for implementing additional functionality.
@@ -324,30 +637,35 @@ TRANSPORT_MODE=http          # Use HTTP transport
 PORT=3001                    # Custom port
 ```
 
-## Installation & Usage
+## Standalone Usage
 
-### NPM Installation
+If you want to run the server independently (not through an MCP client):
+
+### Global Installation
 
 ```bash
 npm install -g swell-mcp
 ```
 
-### From Source
+### Direct Usage
 
 ```bash
-git clone https://github.com/devkindhq/swell-mcp.git
-cd swell-mcp
-npm install
-npm run build
-```
-
-### Configuration
-
-Set your Swell credentials:
-
-```bash
+# Set your credentials
 export SWELL_STORE_ID=your-store-id
 export SWELL_SECRET_KEY=your-secret-key
+
+# Run the server
+swell-mcp
+```
+
+### HTTP Mode
+
+```bash
+# Run with HTTP transport on port 3000
+TRANSPORT_MODE=http swell-mcp
+
+# Custom port
+PORT=8080 TRANSPORT_MODE=http swell-mcp
 ```
 
 ---
