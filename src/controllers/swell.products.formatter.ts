@@ -1,3 +1,6 @@
+// TODO: Revisit type definitions after Swell API documentation response
+// Currently using 'any' types for some variant properties due to incomplete type definitions
+
 import {
 	SwellProduct,
 	SwellProductsList,
@@ -190,6 +193,7 @@ export function formatProductDetails(
 		lines.push('|---|---|---|---|---|---|');
 
 		for (const variant of product.variants as unknown[]) {
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			const typedVariant = variant as any;
 			const variantPrice = formatPrice(
 				typedVariant.price,

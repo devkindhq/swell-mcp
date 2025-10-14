@@ -1,3 +1,6 @@
+// TODO: Revisit type definitions after Swell API documentation response
+// Currently using 'any' types for some error handling due to incomplete type definitions
+
 import { z } from 'zod';
 import { Logger } from '../utils/logger.util.js';
 import { swellClient } from '../utils/swell-client.util.js';
@@ -435,6 +438,7 @@ async function update(
 			} catch (error) {
 				if (
 					error instanceof McpError &&
+					// eslint-disable-next-line @typescript-eslint/no-explicit-any
 					(error as any).status === 404
 				) {
 					throw createApiError(

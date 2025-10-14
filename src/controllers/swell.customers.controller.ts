@@ -21,6 +21,7 @@ import {
 	CustomerAnalyticsOptions,
 	CustomerUpdateOptions,
 } from '../services/swell.customers.types';
+import { SwellAddress } from '../services/swell.orders.types';
 
 /**
  * @namespace SwellCustomersController
@@ -538,7 +539,8 @@ async function getAnalytics(
 		const data = await swellCustomersService.getAnalytics(options);
 
 		methodLogger.debug(
-			`Successfully retrieved analytics data: ${data.count} customers`,
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			`Successfully retrieved analytics data: ${(data as any).count} customers`,
 			{
 				customer_id: options.customer_id,
 				group_id: options.group_id,
@@ -602,8 +604,8 @@ async function update(args: {
 	lastName?: string;
 	email?: string;
 	phone?: string;
-	billingAddress?: any;
-	shippingAddress?: any;
+	billingAddress?: SwellAddress;
+	shippingAddress?: SwellAddress;
 	notes?: string;
 	tags?: string[];
 	groupId?: string;
@@ -714,6 +716,7 @@ async function update(args: {
  * Helper function to format customer update results
  */
 function formatCustomerUpdateResult(
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	customer: any,
 	updateOptions: CustomerUpdateOptions,
 ): string {
