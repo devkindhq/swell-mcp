@@ -41,3 +41,15 @@ yarn-error.log*
 # Runtime data
 .env
 .env.* 
+
+# Binaries accidentally downloaded here
+mcp-publisher
+mcp-publisher.tar.gz
+
+# IDE/tool specs
+.kiro/
+.cursor/
+
+# Semantic release
+.releaserc.json
+.trigger-ci
