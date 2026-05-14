@@ -1,6 +1,7 @@
 {
 	"name": "swell-mcp",
 	"version": "1.0.0",
+	"mcpName": "io.github.devkindhq/swell",
 	"description": "Model Context Protocol server for Swell e-commerce platform integration with AI assistants",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",

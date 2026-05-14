@@ -1,0 +1,57 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.devkindhq/swell",
+  "title": "Swell MCP",
+  "description": "Model Context Protocol server for Swell e-commerce platform integration with AI assistants",
+  "repository": {
+    "url": "https://github.com/devkindhq/swell-mcp",
+    "source": "github"
+  },
+  "version": "1.0.9",
+  "packages": [
+    {
+      "registryType": "npm",
+      "registryBaseUrl": "https://registry.npmjs.org",
+      "identifier": "swell-mcp",
+      "version": "1.0.9",
+      "runtimeHint": "npx",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "SWELL_STORE_ID",
+          "description": "Your Swell store ID",
+          "isRequired": true,
+          "isSecret": false
+        },
+        {
+          "name": "SWELL_SECRET_KEY",
+          "description": "Your Swell secret API key",
+          "isRequired": true,
+          "isSecret": true
+        }
+      ]
+    }
+  ],
+  "_meta": {
+    "io.modelcontextprotocol.registry/publisher-provided": {
+      "author": "Devkind",
+      "website": "https://devkind.com.au",
+      "tools": [
+        "swell_list_products",
+        "swell_get_product",
+        "swell_search_products",
+        "swell_check_stock",
+        "swell_update_product",
+        "swell_list_orders",
+        "swell_get_order",
+        "swell_update_order_status",
+        "swell_list_customers",
+        "swell_get_customer",
+        "swell_search_customers",
+        "swell_update_customer"
+      ]
+    }
+  }
+}
