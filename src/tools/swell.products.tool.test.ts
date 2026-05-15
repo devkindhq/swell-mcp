@@ -29,11 +29,12 @@ describe('Swell Products Tools Integration', () => {
 		// Create mock server with tool registration tracking
 		registeredTools = new Map();
 		mockServer = {
-			tool: jest.fn((name, description, schema, handler) => {
+			tool: jest.fn((name, description, schema, annotations, handler) => {
 				registeredTools.set(name, {
 					name,
 					description,
 					schema,
+					annotations,
 					handler,
 				});
 			}),
