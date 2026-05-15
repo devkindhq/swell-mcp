@@ -1,7 +1,7 @@
 name: swell-mcp
 description: Model Context Protocol server for Swell e-commerce platform integration with AI assistants
 vendor: Devkind
-homepage: https://devkind.com.au
+homepage: https://devkind.com.au/services/swell
 license: ISC
 startCommand:
   type: stdio
@@ -10,19 +10,34 @@ startCommand:
     properties:
       storeId:
         type: string
-        description: Your Swell store ID
+        description: Your Swell store ID (found in Swell Dashboard → Settings → API)
       secretKey:
         type: string
-        description: Your Swell secret API key
+        description: Your Swell secret API key (found in Swell Dashboard → Settings → API)
+      debug:
+        type: boolean
+        description: Enable verbose debug logging
+        default: false
+      logLevel:
+        type: string
+        description: Log level for the server output
+        default: info
+        enum:
+          - debug
+          - info
+          - warn
+          - error
     required:
       - storeId
       - secretKey
   commandFunction: |-
     (config) => ({
       command: "npx",
-      args: ["swell-mcp"],
+      args: ["-y", "swell-mcp"],
       env: {
         SWELL_STORE_ID: config.storeId,
-        SWELL_SECRET_KEY: config.secretKey
+        SWELL_SECRET_KEY: config.secretKey,
+        ...(config.debug ? { DEBUG: "true" } : {}),
+        ...(config.logLevel ? { LOG_LEVEL: config.logLevel } : {})
       }
     })

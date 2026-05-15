@@ -577,6 +577,7 @@ function registerTools(server: McpServer) {
 		'swell_list_products',
 		'List products from your Swell store with filtering and pagination options. Supports filtering by active status, category, tags, and various sorting options. Returns a formatted table of products with basic information including ID, name, SKU, price, stock status, and availability.',
 		SwellListProductsSchema.shape,
+		{ readOnlyHint: true, openWorldHint: false },
 		handleSwellListProducts,
 	);
 
@@ -584,6 +585,7 @@ function registerTools(server: McpServer) {
 		'swell_get_product',
 		'Get detailed information for a specific product from your Swell store. Returns comprehensive product details including variants, categories, images, pricing, inventory, SEO information, and custom attributes. Use this tool when you need complete product information.',
 		SwellGetProductSchema.shape,
+		{ readOnlyHint: true, openWorldHint: false },
 		handleSwellGetProduct,
 	);
 
@@ -591,6 +593,7 @@ function registerTools(server: McpServer) {
 		'swell_search_products',
 		'Search for products in your Swell store using text queries with optional filtering. Searches across product names, SKUs, descriptions, and tags. Returns ranked results with match information and supports the same filtering options as product listing.',
 		SwellSearchProductsSchema.shape,
+		{ readOnlyHint: true, openWorldHint: false },
 		handleSwellSearchProducts,
 	);
 
@@ -598,6 +601,7 @@ function registerTools(server: McpServer) {
 		'swell_check_stock',
 		'Check current stock levels and stock status for a specific product in your Swell store. Returns detailed stock information including levels, status, and availability messages. Optionally includes variant-level stock information.',
 		SwellCheckStockSchema.shape,
+		{ readOnlyHint: true, openWorldHint: false },
 		handleSwellCheckStock,
 	);
 
@@ -605,6 +609,12 @@ function registerTools(server: McpServer) {
 		'swell_update_product',
 		'Update product information in your Swell store. Allows modification of product details including name, description, pricing, stock, SEO fields, categories, tags, and custom attributes. Returns a summary of changes made with before/after values.',
 		SwellUpdateProductSchema.shape,
+		{
+			readOnlyHint: false,
+			destructiveHint: false,
+			idempotentHint: true,
+			openWorldHint: false,
+		},
 		handleSwellUpdateProduct,
 	);
 
@@ -612,6 +622,12 @@ function registerTools(server: McpServer) {
 		'swell_update_product_stock',
 		'Update stock-specific information for a product in your Swell store. Allows modification of stock levels, stock status, and stock tracking settings. Use this tool for focused stock management operations.',
 		SwellUpdateProductStockSchema.shape,
+		{
+			readOnlyHint: false,
+			destructiveHint: false,
+			idempotentHint: false,
+			openWorldHint: false,
+		},
 		handleSwellUpdateProductStock,
 	);
 
@@ -619,6 +635,12 @@ function registerTools(server: McpServer) {
 		'swell_update_product_pricing',
 		'Update pricing information for a product in your Swell store. Allows modification of regular price, sale price, and currency. Includes validation to ensure sale price is not higher than regular price.',
 		SwellUpdateProductPricingSchema.shape,
+		{
+			readOnlyHint: false,
+			destructiveHint: false,
+			idempotentHint: true,
+			openWorldHint: false,
+		},
 		handleSwellUpdateProductPricing,
 	);
 
