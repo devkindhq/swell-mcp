@@ -1,0 +1,44 @@
+{
+  "manifest_version": "0.2",
+  "name": "swell-mcp",
+  "version": "1.0.9",
+  "description": "Model Context Protocol server for Swell e-commerce platform integration with AI assistants",
+  "author": {
+    "name": "Devkind",
+    "url": "https://devkind.com.au"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/devkindhq/swell-mcp"
+  },
+  "license": "ISC",
+  "server": {
+    "type": "node",
+    "entry_point": "dist/index.js",
+    "mcp_config": {
+      "command": "node",
+      "args": [
+        "${__dirname}/dist/index.js"
+      ],
+      "env": {
+        "SWELL_STORE_ID": "${user_config.swell_store_id}",
+        "SWELL_SECRET_KEY": "${user_config.swell_secret_key}"
+      }
+    }
+  },
+  "user_config": {
+    "swell_store_id": {
+      "type": "string",
+      "title": "Swell Store ID",
+      "description": "Your Swell store ID",
+      "required": true
+    },
+    "swell_secret_key": {
+      "type": "string",
+      "title": "Swell Secret Key",
+      "description": "Your Swell secret API key",
+      "required": true,
+      "sensitive": true
+    }
+  }
+}
