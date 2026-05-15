@@ -7,6 +7,7 @@ A Model Context Protocol server that integrates AI assistants with Swell's e-com
 [![NPM Version](https://img.shields.io/npm/v/swell-mcp)](https://www.npmjs.com/package/swell-mcp)
 [![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg)](https://opensource.org/licenses/ISC)
 [![Built by Devkind](https://img.shields.io/badge/Built%20by-Devkind-blue)](https://devkind.com.au/services/swell)
+[![SafeSkill 88/100](https://img.shields.io/badge/SafeSkill-88%2F100_Passes%20with%20Notes-yellow)](https://safeskill.dev/scan/devkindhq-swell-mcp)
 
 ## Features
 
