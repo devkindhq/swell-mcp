@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "swell": {
+      "command": "npx",
+      "args": ["-y", "swell-mcp"],
+      "env": {
+        "SWELL_STORE_ID": "",
+        "SWELL_SECRET_KEY": ""
+      }
+    }
+  }
+}
