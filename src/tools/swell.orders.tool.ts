@@ -235,6 +235,7 @@ function registerTools(server: McpServer) {
 		'swell_list_orders',
 		'List orders from your Swell store with filtering options. Supports filtering by status, customer, date range, and various sorting options. Returns a formatted table of orders with basic information including order number, customer, status, total, and dates.',
 		SwellListOrdersSchema.shape,
+		{ readOnlyHint: true, openWorldHint: false },
 		handleSwellListOrders,
 	);
 
@@ -242,6 +243,7 @@ function registerTools(server: McpServer) {
 		'swell_get_order',
 		'Get detailed information for a specific order from your Swell store. Returns comprehensive order details including items, customer information, billing and shipping addresses, payment details, and order history. Use this tool when you need complete order information.',
 		SwellGetOrderSchema.shape,
+		{ readOnlyHint: true, openWorldHint: false },
 		handleSwellGetOrder,
 	);
 
@@ -249,6 +251,12 @@ function registerTools(server: McpServer) {
 		'swell_update_order_status',
 		'Update the status of an order in your Swell store. Allows changing order status to pending, payment_pending, delivery_pending, complete, or canceled. Optionally add notes about the status change. Returns the updated order information.',
 		SwellUpdateOrderStatusSchema.shape,
+		{
+			readOnlyHint: false,
+			destructiveHint: true,
+			idempotentHint: false,
+			openWorldHint: false,
+		},
 		handleSwellUpdateOrderStatus,
 	);
 

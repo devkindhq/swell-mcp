@@ -343,6 +343,7 @@ function registerTools(server: McpServer) {
 		'swell_list_customers',
 		'List customers from your Swell store with search and filtering options. Supports filtering by email, date range, and various sorting options. Returns a formatted table of customers with basic information including name, email, order count, total value, and registration date.',
 		SwellListCustomersSchema.shape,
+		{ readOnlyHint: true, openWorldHint: false },
 		handleSwellListCustomers,
 	);
 
@@ -350,6 +351,7 @@ function registerTools(server: McpServer) {
 		'swell_get_customer',
 		'Get detailed information for a specific customer from your Swell store. Returns comprehensive customer profile including personal information, addresses, order history, and customer analytics. Use this tool when you need complete customer information.',
 		SwellGetCustomerSchema.shape,
+		{ readOnlyHint: true, openWorldHint: false },
 		handleSwellGetCustomer,
 	);
 
@@ -357,6 +359,7 @@ function registerTools(server: McpServer) {
 		'swell_search_customers',
 		'Search for customers in your Swell store using text queries. Searches across customer names, email addresses, and phone numbers. Returns ranked results with match information and supports filtering by date range and sorting options.',
 		SwellSearchCustomersSchema.shape,
+		{ readOnlyHint: true, openWorldHint: false },
 		handleSwellSearchCustomers,
 	);
 
@@ -364,6 +367,12 @@ function registerTools(server: McpServer) {
 		'swell_update_customer',
 		'Update customer information in your Swell store. Allows modification of customer details including name, email, phone, notes, tags, and marketing preferences. Use this tool to correct customer information or update their profile.',
 		SwellUpdateCustomerSchema.shape,
+		{
+			readOnlyHint: false,
+			destructiveHint: false,
+			idempotentHint: true,
+			openWorldHint: false,
+		},
 		handleSwellUpdateCustomer,
 	);
 
