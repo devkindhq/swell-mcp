@@ -8,6 +8,7 @@
     "source": "github"
   },
   "version": "1.1.0",
+  "websiteUrl": "https://devkind.com.au/services/swell",
   "packages": [
     {
       "registryType": "npm",
