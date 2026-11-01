@@ -1,0 +1,5 @@
+{
+  "$schema": "https://glama.ai/mcp/schemas/server.json",
+  "name": "Swell MCP Server",
+  "description": "Model Context Protocol (MCP) server for Swell e-commerce platform integration — products, orders, and customer management for AI assistants. Built by Devkind, official Swell partner."
+}
