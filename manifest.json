@@ -1,7 +1,7 @@
 {
   "manifest_version": "0.2",
   "name": "swell-mcp",
-  "version": "1.0.9",
+  "version": "1.1.0",
   "description": "Model Context Protocol server for Swell e-commerce platform integration with AI assistants",
   "author": {
     "name": "Devkind",
