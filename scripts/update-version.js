@@ -61,6 +61,25 @@ const versionFiles = [
 	// Additional files can be added here with their patterns and replacement logic
 ];
 
+// JSON registry files that must carry the same version as package.json
+const jsonVersionFiles = [
+	{
+		path: path.join(rootDir, 'manifest.json'),
+		apply: (json) => {
+			json.version = newVersion;
+		},
+	},
+	{
+		path: path.join(rootDir, 'server.json'),
+		apply: (json) => {
+			json.version = newVersion;
+			for (const pkg of json.packages || []) {
+				pkg.version = newVersion;
+			}
+		},
+	},
+];
+
 /**
  * Read the version from package.json
  * @returns {string} The version from package.json
@@ -175,6 +194,48 @@ function updateFileVersion(fileConfig) {
 	}
 }
 
+/**
+ * Update version in a JSON file, preserving its indent and trailing newline
+ * @param {Object} fileConfig - Path and apply function that sets the versions
+ */
+function updateJsonVersion({ path: filePath, apply }) {
+	try {
+		if (!fs.existsSync(filePath)) {
+			console.warn(`Warning: File not found: ${filePath}`);
+			return;
+		}
+
+		const fileContent = fs.readFileSync(filePath, 'utf8');
+		const indent = fileContent.match(/^([ \t]+)"/m)?.[1] ?? 2;
+		const json = JSON.parse(fileContent);
+		apply(json);
+		const updatedContent =
+			JSON.stringify(json, null, indent) +
+			(fileContent.endsWith('\n') ? '\n' : '');
+
+		if (updatedContent === fileContent) {
+			log(
+				`Version in ${path.basename(filePath)} is already ${newVersion}`,
+				true,
+			);
+			return;
+		}
+
+		if (options.dryRun) {
+			log(`Would update version in ${filePath} to ${newVersion}`);
+		} else {
+			fs.writeFileSync(`${filePath}.bak`, fileContent);
+			fs.writeFileSync(filePath, updatedContent);
+			log(
+				`Updated version in ${path.basename(filePath)} to ${newVersion}`,
+			);
+		}
+	} catch (error) {
+		console.error(`Error updating ${filePath}: ${error.message}`);
+		process.exit(1);
+	}
+}
+
 // Main execution
 try {
 	// If no version specified, get from package.json
@@ -191,6 +252,9 @@ try {
 	// Update all configured files
 	for (const fileConfig of versionFiles) {
 		updateFileVersion(fileConfig);
+	}
+	for (const fileConfig of jsonVersionFiles) {
+		updateJsonVersion(fileConfig);
 	}
 
 	if (options.dryRun) {

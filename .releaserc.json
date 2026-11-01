@@ -23,6 +23,8 @@
 			{
 				"assets": [
 					"package.json",
+					"manifest.json",
+					"server.json",
 					"CHANGELOG.md",
 					"src/index.ts",
 					"src/cli/index.ts"
